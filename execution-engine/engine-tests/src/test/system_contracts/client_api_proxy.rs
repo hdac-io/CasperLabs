@@ -1,16 +1,13 @@
 use base16;
 
-use contract_ffi::{
-    key::Key,
-    value::{account::PublicKey, U512},
-};
 use engine_core::engine_state::{genesis::GenesisAccount, SYSTEM_ACCOUNT_ADDR};
 use engine_shared::{motes::Motes, stored_value::StoredValue, transform::Transform};
-
-use crate::{
-    support::test_support::{self, ExecuteRequestBuilder, InMemoryWasmTestBuilder},
-    test::{DEFAULT_ACCOUNT_ADDR, DEFAULT_ACCOUNT_INITIAL_BALANCE, DEFAULT_GENESIS_CONFIG},
+use engine_test_support::{
+    internal::{utils, ExecuteRequestBuilder, InMemoryWasmTestBuilder, DEFAULT_GENESIS_CONFIG},
+    DEFAULT_ACCOUNT_ADDR, DEFAULT_ACCOUNT_INITIAL_BALANCE,
 };
+
+use types::{account::PublicKey, Key, U512};
 
 const ACCOUNT_1_ADDR: [u8; 32] = [1u8; 32];
 
@@ -32,7 +29,7 @@ fn get_client_api_proxy_hash(builder: &InMemoryWasmTestBuilder) -> [u8; 32] {
         .named_keys()
         .get("client_api_proxy")
         .expect("should get client_api_proxy key")
-        .as_hash()
+        .into_hash()
         .expect("should be hash")
 }
 
@@ -79,7 +76,7 @@ fn should_invoke_successful_bond_and_unbond() {
         Motes::new(DEFAULT_ACCOUNT_INITIAL_BALANCE.into()),
         Motes::new(BOND_AMOUNT.into()),
     )];
-    let genesis_config = test_support::create_genesis_config(accounts);
+    let genesis_config = utils::create_genesis_config(accounts);
     let result = InMemoryWasmTestBuilder::default()
         .run_genesis(&genesis_config)
         .commit()
