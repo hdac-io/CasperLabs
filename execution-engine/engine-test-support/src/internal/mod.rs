@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 use num_traits::identities::Zero;
 
 use engine_core::engine_state::{
-    genesis::{GenesisAccount, GenesisConfig},
+    genesis::{DelegateKey, Delegator, GenesisAccount, GenesisConfig},
     CONV_RATE,
 };
 use engine_shared::{motes::Motes, test_utils};
@@ -49,6 +49,19 @@ lazy_static! {
         ret.push(genesis_account);
         ret
     };
+    pub static ref DEFAULT_DELEGATOR: Vec<Delegator> = {
+        let mut ret = Vec::new();
+        let delegate_key = DelegateKey::new(
+            PublicKey::new(DEFAULT_ACCOUNT_ADDR),
+            PublicKey::new(DEFAULT_ACCOUNT_ADDR),
+        );
+        let delegator = Delegator::new(
+            delegate_key,
+            Motes::new(DEFAULT_ACCOUNT_INITIAL_BALANCE.into()),
+        );
+        ret.push(delegator);
+        ret
+    };
     pub static ref DEFAULT_PROTOCOL_VERSION: ProtocolVersion = ProtocolVersion::V1_0_0;
     pub static ref DEFAULT_PAYMENT: U512 = U512::from(10_000_000) * CONV_RATE;
     pub static ref DEFAULT_WASM_COSTS: WasmCosts = test_utils::wasm_costs_mock();
@@ -62,6 +75,7 @@ lazy_static! {
             mint_installer_bytes,
             pos_installer_bytes,
             DEFAULT_ACCOUNTS.clone(),
+            DEFAULT_DELEGATOR.clone(),
             *DEFAULT_WASM_COSTS,
         )
     };
@@ -75,6 +89,7 @@ lazy_static! {
             mint_installer_bytes,
             pos_installer_bytes,
             DEFAULT_ACCOUNTS.clone(),
+            DEFAULT_DELEGATOR.clone(),
             *DEFAULT_WASM_COSTS,
         )
     };

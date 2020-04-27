@@ -1,7 +1,7 @@
 use num_traits::Zero;
 use std::collections::HashMap;
 
-use engine_core::engine_state::genesis::GenesisAccount;
+use engine_core::engine_state::genesis::{DelegateKey, Delegator, GenesisAccount};
 use engine_shared::motes::Motes;
 use engine_test_support::{
     internal::{utils, ExecuteRequestBuilder, InMemoryWasmTestBuilder, DEFAULT_ACCOUNTS},
@@ -38,7 +38,24 @@ fn should_return_bonded_validators() {
         tmp
     };
 
-    let genesis_config = utils::create_casper_genesis_config(accounts.clone());
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(ACCOUNT_1_BOND.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::new(ACCOUNT_2_BOND.into()),
+        ),
+    ];
+
+    let genesis_config = utils::create_casper_genesis_config(accounts.clone(), delegators);
 
     let exec_request =
         ExecuteRequestBuilder::standard(DEFAULT_ACCOUNT_ADDR, CONTRACT_LOCAL_STATE, ()).build();

@@ -15,6 +15,8 @@ use types::{
     AccessRights, ApiError, CLValue, ContractRef, Key, URef, U512,
 };
 
+use pop::DelegateRequestKey;
+
 const PLACEHOLDER_KEY: Key = Key::Hash([0u8; 32]);
 const POS_BONDING_PURSE: &str = "pos_bonding_purse";
 const POS_PAYMENT_PURSE: &str = "pos_payment_purse";
@@ -26,6 +28,7 @@ const BIGSUN_TO_HDAC: u64 = 1_000_000_000_000_000_000_u64;
 enum Args {
     MintURef = 0,
     GenesisValidators = 1,
+    GenesisDelegators = 2,
 }
 
 #[no_mangle]
@@ -67,17 +70,30 @@ pub extern "C" fn call() {
     // Insert genesis validator's delegations.
     // We also store delegations in the form key:
     // "d_{delegator_pk}_{validator_pk}_{delegation_amount}", value: doesn't matter
-    genesis_validators
+    let genesis_delegators: BTreeMap<DelegateRequestKey, U512> =
+        runtime::get_arg(Args::GenesisDelegators as u32)
+            .unwrap_or_revert_with(ApiError::MissingArgument)
+            .unwrap_or_revert_with(ApiError::InvalidArgument);
+    genesis_delegators
         .iter()
-        .map(|(pub_key, balance)| {
-            let key_bytes = pub_key.value();
-            let mut hex_key = String::with_capacity(64);
-            for byte in &key_bytes[..32] {
-                write!(hex_key, "{:02x}", byte).unwrap();
+        .map(|(delegate_request_key, balance)| {
+            let delegator_key_bytes = delegate_request_key.delegator.value();
+            let mut delegator_hex_key = String::with_capacity(64);
+            for byte in &delegator_key_bytes[..32] {
+                write!(delegator_hex_key, "{:02x}", byte).unwrap();
             }
+            let validator_key_bytes = delegate_request_key.validator.value();
+            let mut validator_hex_key = String::with_capacity(64);
+            for byte in &validator_key_bytes[..32] {
+                write!(validator_hex_key, "{:02x}", byte).unwrap();
+            }
+
             let mut uref = String::new();
-            uref.write_fmt(format_args!("d_{}_{}_{}", hex_key, hex_key, balance))
-                .unwrap();
+            uref.write_fmt(format_args!(
+                "d_{}_{}_{}",
+                delegator_hex_key, validator_hex_key, balance
+            ))
+            .unwrap();
             uref
         })
         .for_each(|key| {

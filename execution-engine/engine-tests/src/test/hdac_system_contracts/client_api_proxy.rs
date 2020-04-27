@@ -1,7 +1,7 @@
 use num_traits::identities::Zero;
 
 use engine_core::engine_state::{
-    genesis::{GenesisAccount, POS_BONDING_PURSE},
+    genesis::{DelegateKey, Delegator, GenesisAccount, POS_BONDING_PURSE},
     CONV_RATE, SYSTEM_ACCOUNT_ADDR,
 };
 use engine_shared::{motes::Motes, stored_value::StoredValue, transform::Transform};
@@ -164,7 +164,18 @@ fn should_invoke_successful_bond_and_unbond() {
         Motes::new(DEFAULT_ACCOUNT_INITIAL_BALANCE.into()),
         Motes::new(BOND_AMOUNT.into()),
     )];
-    let genesis_config = utils::create_genesis_config(accounts);
+    let delegators: Vec<Delegator> = {
+        let mut ret = Vec::new();
+        let delegate_key = DelegateKey::new(
+            PublicKey::new(DEFAULT_ACCOUNT_ADDR),
+            PublicKey::new(DEFAULT_ACCOUNT_ADDR),
+        );
+        let delegator = Delegator::new(delegate_key, Motes::new(BOND_AMOUNT.into()));
+        ret.push(delegator);
+        ret
+    };
+
+    let genesis_config = utils::create_genesis_config(accounts, delegators);
     let result = InMemoryWasmTestBuilder::default()
         .run_genesis(&genesis_config)
         .commit()
@@ -300,8 +311,24 @@ fn should_invoke_successful_delegation_methods() {
             Motes::zero(),
         ),
     ];
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+    ];
 
-    let genesis_config = utils::create_genesis_config(accounts);
+    let genesis_config = utils::create_genesis_config(accounts, delegators);
     let result = InMemoryWasmTestBuilder::default()
         .run_genesis(&genesis_config)
         .commit()
@@ -479,10 +506,26 @@ fn should_invoke_successful_vote_and_unvote() {
             Motes::zero(),
         ),
     ];
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR_DAPP_1),
+                PublicKey::new(ACCOUNT_1_ADDR_DAPP_1),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_3_ADDR_USER_1),
+                PublicKey::new(ACCOUNT_3_ADDR_USER_1),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+    ];
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .finish();
 
     let client_api_proxy_hash = get_client_api_proxy_hash(result.builder());
@@ -635,10 +678,26 @@ fn should_invoke_successful_step() {
             Motes::zero(),
         ),
     ];
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR_DAPP_1),
+                PublicKey::new(ACCOUNT_1_ADDR_DAPP_1),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_3_ADDR_USER_1),
+                PublicKey::new(ACCOUNT_3_ADDR_USER_1),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+    ];
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .finish();
 
     let pos_uref = builder.get_pos_contract_uref();

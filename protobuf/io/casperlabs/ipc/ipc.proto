@@ -247,12 +247,23 @@ message ChainSpec {
         // costs at genesis
         CostTable costs = 7;
         DeployConfig deploy_config = 8;
+        repeated Delegator delegators = 9;
     }
 
     message GenesisAccount {
         bytes public_key = 1;
         io.casperlabs.casper.consensus.state.BigInt balance = 2; // in motes
         io.casperlabs.casper.consensus.state.BigInt bonded_amount = 3; // in motes, 0 means "not bonded"
+    }
+
+    message Delegator {
+        DelegateKey delegate_key = 1;
+        io.casperlabs.casper.consensus.state.BigInt amount = 2; // in motes
+    }
+
+    message DelegateKey {
+        bytes delegator = 1;
+        bytes validator = 2;
     }
 
     message DeployConfig {

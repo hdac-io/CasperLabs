@@ -8,7 +8,7 @@ use lazy_static::lazy_static;
 
 use engine_core::engine_state::{
     execution_result::ExecutionResult,
-    genesis::{GenesisAccount, GenesisConfig},
+    genesis::{Delegator, GenesisAccount, GenesisConfig},
 };
 use engine_shared::{
     account::Account, additive_map::AdditiveMap, gas::Gas, stored_value::StoredValue,
@@ -102,7 +102,10 @@ pub fn read_wasm_file_bytes<T: AsRef<Path>>(contract_file: T) -> Vec<u8> {
     panic!("{}\n", error_msg);
 }
 
-pub fn create_genesis_config(accounts: Vec<GenesisAccount>) -> GenesisConfig {
+pub fn create_genesis_config(
+    accounts: Vec<GenesisAccount>,
+    delegators: Vec<Delegator>,
+) -> GenesisConfig {
     let name = DEFAULT_CHAIN_NAME.to_string();
     let timestamp = DEFAULT_GENESIS_TIMESTAMP;
     let mint_installer_bytes = read_wasm_file_bytes(MINT_INSTALL_CONTRACT);
@@ -116,14 +119,18 @@ pub fn create_genesis_config(accounts: Vec<GenesisAccount>) -> GenesisConfig {
         mint_installer_bytes,
         proof_of_stake_installer_bytes,
         accounts,
+        delegators,
         wasm_costs,
     )
 }
 
-pub fn create_casper_genesis_config(accounts: Vec<GenesisAccount>) -> GenesisConfig {
+pub fn create_casper_genesis_config(
+    accounts: Vec<GenesisAccount>,
+    delegators: Vec<Delegator>,
+) -> GenesisConfig {
     let mint_installer_bytes = read_wasm_file_bytes(CASPER_MINT_INSTALL_CONTRACT);
     let proof_of_stake_installer_bytes = read_wasm_file_bytes(CASPER_POS_INSTALL_CONTRACT);
-    let default = create_genesis_config(accounts);
+    let default = create_genesis_config(accounts, delegators);
     GenesisConfig::new(
         default.name().to_string(),
         default.timestamp(),
@@ -131,6 +138,7 @@ pub fn create_casper_genesis_config(accounts: Vec<GenesisAccount>) -> GenesisCon
         mint_installer_bytes,
         proof_of_stake_installer_bytes,
         default.accounts().to_vec(),
+        default.delegators().to_vec(),
         default.wasm_costs(),
     )
 }

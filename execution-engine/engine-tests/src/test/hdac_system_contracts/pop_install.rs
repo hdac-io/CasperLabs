@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use engine_core::engine_state::genesis::DelegateKey;
 use engine_test_support::{
     internal::{
         exec_with_return, ExecuteRequestBuilder, WasmTestBuilder, DEFAULT_BLOCK_TIME,
@@ -48,6 +49,15 @@ fn should_run_pop_install_contract() {
         .map(|i| (PublicKey::new([i; 32]), U512::from(i)))
         .collect();
 
+    let genesis_delegators: BTreeMap<DelegateKey, U512> = (1u8..=N_VALIDATORS)
+        .map(|i| {
+            (
+                DelegateKey::new(PublicKey::new([i; 32]), PublicKey::new([i; 32])),
+                U512::from(i),
+            )
+        })
+        .collect();
+
     let total_bond = genesis_validators.values().fold(U512::zero(), |x, y| x + y);
 
     let (ret_value, ret_urefs, effect): (URef, _, _) = exec_with_return::exec(
@@ -56,7 +66,7 @@ fn should_run_pop_install_contract() {
         POS_INSTALL_CONTRACT,
         DEFAULT_BLOCK_TIME,
         DEPLOY_HASH_2,
-        (mint_uref, genesis_validators),
+        (mint_uref, genesis_validators, genesis_delegators),
         vec![mint_uref],
     )
     .expect("should run successfully");

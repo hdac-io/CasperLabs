@@ -1,7 +1,7 @@
 use num_traits::identities::Zero;
 
 use engine_core::engine_state::{
-    genesis::{GenesisAccount, POS_BONDING_PURSE},
+    genesis::{DelegateKey, Delegator, GenesisAccount, POS_BONDING_PURSE},
     CONV_RATE,
 };
 use engine_shared::motes::Motes;
@@ -57,9 +57,26 @@ fn should_run_successful_delegate_and_undelegate() {
         ),
     ];
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::zero(),
+        ),
+    ];
+
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .finish();
 
     let pos_uref = builder.get_pos_contract_uref();
@@ -350,6 +367,30 @@ fn should_run_successful_redelegate() {
         ),
     ];
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_3_ADDR),
+                PublicKey::new(ACCOUNT_3_ADDR),
+            ),
+            Motes::zero(),
+        ),
+    ];
+
     // delegate request from ACCOUNT_3 to ACCOUNT_1.
     let delegate_request = ExecuteRequestBuilder::standard(
         ACCOUNT_3_ADDR,
@@ -376,7 +417,7 @@ fn should_run_successful_redelegate() {
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .exec(delegate_request)
         .commit()
         .exec(redelegate_request)
@@ -555,6 +596,23 @@ fn should_fail_to_unbond_more_than_own_self_delegation() {
         ),
     ];
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::zero(),
+        ),
+    ];
+
     // delegate request from ACCOUNT_3 to ACCOUNT_1.
     let delegate_request = ExecuteRequestBuilder::standard(
         ACCOUNT_2_ADDR,
@@ -579,7 +637,7 @@ fn should_fail_to_unbond_more_than_own_self_delegation() {
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .exec(delegate_request)
         .expect_success()
         .commit()
@@ -626,6 +684,23 @@ fn should_fail_to_delegate_to_unbonded_validator() {
         ),
     ];
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::zero(),
+        ),
+    ];
+
     // delegate request from ACCOUNT_1 to ACCOUNT_2.
     let delegate_request = ExecuteRequestBuilder::standard(
         ACCOUNT_1_ADDR,
@@ -640,7 +715,7 @@ fn should_fail_to_delegate_to_unbonded_validator() {
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .exec(delegate_request)
         .commit()
         .finish();
@@ -681,6 +756,23 @@ fn should_fail_to_redelegate_non_existent_delegation() {
         ),
     ];
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+    ];
+
     // redelegate request from ACCOUNT_2 to self.
     let redelegate_request = ExecuteRequestBuilder::standard(
         ACCOUNT_1_ADDR,
@@ -696,7 +788,7 @@ fn should_fail_to_redelegate_non_existent_delegation() {
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .exec(redelegate_request)
         .commit()
         .finish();
@@ -740,6 +832,23 @@ fn should_fail_to_self_redelegate() {
         ),
     ];
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::zero(),
+        ),
+    ];
+
     // delegate request from ACCOUNT_2 to ACCOUNT_1.
     let delegate_request = ExecuteRequestBuilder::standard(
         ACCOUNT_2_ADDR,
@@ -767,7 +876,7 @@ fn should_fail_to_self_redelegate() {
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .exec(delegate_request)
         .expect_success()
         .commit()
@@ -822,6 +931,30 @@ fn should_fail_to_redelegate_more_than_own_shares() {
         ),
     ];
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_3_ADDR),
+                PublicKey::new(ACCOUNT_3_ADDR),
+            ),
+            Motes::zero(),
+        ),
+    ];
+
     // delegate request from ACCOUNT_3 to ACCOUNT_1.
     let delegate_request = ExecuteRequestBuilder::standard(
         ACCOUNT_3_ADDR,
@@ -849,7 +982,7 @@ fn should_fail_to_redelegate_more_than_own_shares() {
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .exec(delegate_request)
         .expect_success()
         .commit()

@@ -1,5 +1,5 @@
 use engine_core::engine_state::{
-    genesis::{GenesisAccount, POS_BONDING_PURSE},
+    genesis::{DelegateKey, Delegator, GenesisAccount, POS_BONDING_PURSE},
     CONV_RATE,
 };
 use engine_shared::motes::Motes;
@@ -63,8 +63,12 @@ fn should_run_successful_bond_and_unbond() {
         tmp.push(account);
         tmp
     };
+    let delegators = vec![Delegator::new(
+        DelegateKey::new(PublicKey::new([42; 32]), PublicKey::new([42; 32])),
+        Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+    )];
 
-    let genesis_config = utils::create_casper_genesis_config(accounts);
+    let genesis_config = utils::create_casper_genesis_config(accounts, delegators);
 
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder.run_genesis(&genesis_config).finish();
@@ -428,8 +432,12 @@ fn should_fail_bonding_with_insufficient_funds() {
         tmp.push(account);
         tmp
     };
+    let delegators = vec![Delegator::new(
+        DelegateKey::new(PublicKey::new([42; 32]), PublicKey::new([42; 32])),
+        Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+    )];
 
-    let genesis_config = utils::create_casper_genesis_config(accounts);
+    let genesis_config = utils::create_casper_genesis_config(accounts, delegators);
 
     let exec_request_1 = ExecuteRequestBuilder::standard(
         DEFAULT_ACCOUNT_ADDR,
@@ -484,7 +492,12 @@ fn should_fail_unbonding_validator_without_bonding_first() {
         tmp
     };
 
-    let genesis_config = utils::create_casper_genesis_config(accounts);
+    let delegators = vec![Delegator::new(
+        DelegateKey::new(PublicKey::new([42; 32]), PublicKey::new([42; 32])),
+        Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+    )];
+
+    let genesis_config = utils::create_casper_genesis_config(accounts, delegators);
 
     let exec_request = ExecuteRequestBuilder::standard(
         DEFAULT_ACCOUNT_ADDR,

@@ -1,9 +1,9 @@
 use std::convert::{TryFrom, TryInto};
 
-use engine_core::engine_state::genesis::{GenesisAccount, GenesisConfig};
+use engine_core::engine_state::genesis::{Delegator, GenesisAccount, GenesisConfig};
 
 use crate::engine_server::{
-    ipc::{ChainSpec_GenesisAccount, ChainSpec_GenesisConfig},
+    ipc::{ChainSpec_Delegator, ChainSpec_GenesisAccount, ChainSpec_GenesisConfig},
     mappings::MappingError,
 };
 
@@ -26,6 +26,15 @@ impl From<GenesisConfig> for ChainSpec_GenesisConfig {
                 .collect::<Vec<ChainSpec_GenesisAccount>>();
             pb_genesis_config.set_accounts(accounts.into());
         }
+        {
+            let delegators = genesis_config
+                .delegators()
+                .iter()
+                .cloned()
+                .map(Into::into)
+                .collect::<Vec<ChainSpec_Delegator>>();
+            pb_genesis_config.set_delegators(delegators.into());
+        }
         pb_genesis_config
             .mut_costs()
             .set_wasm(genesis_config.wasm_costs().into());
@@ -45,6 +54,11 @@ impl TryFrom<ChainSpec_GenesisConfig> for GenesisConfig {
             .into_iter()
             .map(TryInto::try_into)
             .collect::<Result<Vec<GenesisAccount>, Self::Error>>()?;
+        let delegators = pb_genesis_config
+            .take_delegators()
+            .into_iter()
+            .map(TryInto::try_into)
+            .collect::<Result<Vec<Delegator>, Self::Error>>()?;
         let wasm_costs = pb_genesis_config.take_costs().take_wasm().into();
         let mint_initializer_bytes = pb_genesis_config.mint_installer;
         let proof_of_stake_initializer_bytes = pb_genesis_config.pos_installer;
@@ -55,6 +69,7 @@ impl TryFrom<ChainSpec_GenesisConfig> for GenesisConfig {
             mint_initializer_bytes,
             proof_of_stake_initializer_bytes,
             accounts,
+            delegators,
             wasm_costs,
         ))
     }

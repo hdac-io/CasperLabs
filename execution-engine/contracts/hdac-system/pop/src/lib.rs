@@ -24,6 +24,8 @@ use types::{
 
 pub use crate::pop_contract::ProofOfProfessionContract;
 
+pub use crate::contract_queue::DelegateRequestKey;
+
 use crate::constants::methods;
 
 pub fn delegate() {

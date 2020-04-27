@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 
-use engine_core::engine_state::genesis::GenesisAccount;
+use engine_core::engine_state::genesis::{DelegateKey, Delegator, GenesisAccount};
 use engine_shared::motes::Motes;
 use engine_test_support::{
     internal::{
@@ -35,7 +35,12 @@ fn should_fail_unboding_more_than_it_was_staked_ee_598_regression() {
         tmp
     };
 
-    let genesis_config = utils::create_genesis_config(accounts);
+    let delegators = vec![Delegator::new(
+        DelegateKey::new(PublicKey::new([42; 32]), PublicKey::new([42; 32])),
+        Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+    )];
+
+    let genesis_config = utils::create_genesis_config(accounts, delegators);
 
     let exec_request_1 = ExecuteRequestBuilder::standard(
         DEFAULT_ACCOUNT_ADDR,

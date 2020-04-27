@@ -59,6 +59,7 @@ use crate::{
     engine_state::{
         error::Error::MissingSystemContract,
         execute_request::ExecuteRequest,
+        genesis::DelegateKey,
         query::{QueryRequest, QueryResult},
         upgrade::{UpgradeConfig, UpgradeResult},
     },
@@ -237,7 +238,11 @@ where
                     .get_bonded_validators()
                     .map(|(k, v)| (k, v.value()))
                     .collect();
-                let args = (mint_reference, bonded_validators);
+                let delegate_delegators: BTreeMap<DelegateKey, U512> = genesis_config
+                    .get_delegated_delegator()
+                    .map(|(k, v)| (k, v.value()))
+                    .collect();
+                let args = (mint_reference, bonded_validators, delegate_delegators);
                 ArgsParser::parse(args)
                     .expect("args should convert to `Vec<CLValue>`")
                     .into_bytes()

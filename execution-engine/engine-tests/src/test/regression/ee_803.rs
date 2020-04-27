@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use engine_core::engine_state::{
     execution_result::ExecutionResult,
-    genesis::{GenesisAccount, POS_REWARDS_PURSE},
+    genesis::{DelegateKey, Delegator, GenesisAccount, POS_REWARDS_PURSE},
     CONV_RATE,
 };
 use engine_shared::motes::Motes;
@@ -67,7 +67,12 @@ fn should_not_be_able_to_unbond_reward() {
         tmp
     };
 
-    let genesis_config = utils::create_genesis_config(accounts);
+    let delegators = vec![Delegator::new(
+        DelegateKey::new(PublicKey::new([42; 32]), PublicKey::new([42; 32])),
+        Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+    )];
+
+    let genesis_config = utils::create_genesis_config(accounts, delegators);
     builder.run_genesis(&genesis_config);
 
     // First request to put some funds in the reward purse

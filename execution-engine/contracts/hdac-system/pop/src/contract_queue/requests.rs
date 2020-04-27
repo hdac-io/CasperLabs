@@ -11,7 +11,7 @@ use super::request_queue::RequestKey;
 
 pub type DelegateRequestKey = UndelegateRequestKey;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct UndelegateRequestKey {
     pub delegator: PublicKey,
     pub validator: PublicKey,

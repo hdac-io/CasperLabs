@@ -1,5 +1,5 @@
 use engine_core::engine_state::{
-    genesis::{GenesisAccount, GenesisConfig},
+    genesis::{DelegateKey, Delegator, GenesisAccount, GenesisConfig},
     SYSTEM_ACCOUNT_ADDR,
 };
 use engine_shared::{motes::Motes, stored_value::StoredValue};
@@ -44,6 +44,23 @@ fn should_run_genesis() {
         )
     };
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR),
+                PublicKey::new(ACCOUNT_1_ADDR),
+            ),
+            Motes::new(ACCOUNT_1_BONDED_AMOUNT.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_2_ADDR),
+                PublicKey::new(ACCOUNT_2_ADDR),
+            ),
+            Motes::new(ACCOUNT_2_BONDED_AMOUNT.into()),
+        ),
+    ];
+
     let name = CHAIN_NAME.to_string();
     let mint_installer_bytes = utils::read_wasm_file_bytes(MINT_INSTALL);
     let pos_installer_bytes = utils::read_wasm_file_bytes(POS_INSTALL);
@@ -58,6 +75,7 @@ fn should_run_genesis() {
         mint_installer_bytes,
         pos_installer_bytes,
         accounts,
+        delegators,
         wasm_costs,
     );
 
@@ -126,6 +144,24 @@ fn should_fail_if_bad_mint_install_contract_is_provided() {
                 account_2_bonded_amount,
             )
         };
+
+        let delegators = vec![
+            Delegator::new(
+                DelegateKey::new(
+                    PublicKey::new(ACCOUNT_1_ADDR),
+                    PublicKey::new(ACCOUNT_1_ADDR),
+                ),
+                Motes::new(ACCOUNT_1_BONDED_AMOUNT.into()),
+            ),
+            Delegator::new(
+                DelegateKey::new(
+                    PublicKey::new(ACCOUNT_2_ADDR),
+                    PublicKey::new(ACCOUNT_2_ADDR),
+                ),
+                Motes::new(ACCOUNT_2_BONDED_AMOUNT.into()),
+            ),
+        ];
+
         let name = CHAIN_NAME.to_string();
         let mint_installer_bytes = utils::read_wasm_file_bytes(BAD_INSTALL);
         let pos_installer_bytes = utils::read_wasm_file_bytes(POS_INSTALL);
@@ -140,6 +176,7 @@ fn should_fail_if_bad_mint_install_contract_is_provided() {
             mint_installer_bytes,
             pos_installer_bytes,
             accounts,
+            delegators,
             wasm_costs,
         )
     };
@@ -174,6 +211,23 @@ fn should_fail_if_bad_pos_install_contract_is_provided() {
                 account_2_bonded_amount,
             )
         };
+
+        let delegators = vec![
+            Delegator::new(
+                DelegateKey::new(
+                    PublicKey::new(ACCOUNT_1_ADDR),
+                    PublicKey::new(ACCOUNT_1_ADDR),
+                ),
+                Motes::new(ACCOUNT_1_BONDED_AMOUNT.into()),
+            ),
+            Delegator::new(
+                DelegateKey::new(
+                    PublicKey::new(ACCOUNT_2_ADDR),
+                    PublicKey::new(ACCOUNT_2_ADDR),
+                ),
+                Motes::new(ACCOUNT_2_BONDED_AMOUNT.into()),
+            ),
+        ];
         let name = CHAIN_NAME.to_string();
         let mint_installer_bytes = utils::read_wasm_file_bytes(MINT_INSTALL);
         let pos_installer_bytes = utils::read_wasm_file_bytes(BAD_INSTALL);
@@ -188,6 +242,7 @@ fn should_fail_if_bad_pos_install_contract_is_provided() {
             mint_installer_bytes,
             pos_installer_bytes,
             accounts,
+            delegators,
             wasm_costs,
         )
     };

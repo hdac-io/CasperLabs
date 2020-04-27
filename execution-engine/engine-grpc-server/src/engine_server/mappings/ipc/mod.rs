@@ -2,6 +2,8 @@
 //! defined in protobuf/io/casperlabs/ipc/ipc.proto
 
 mod bond;
+mod delegate_key;
+mod delegator;
 mod deploy_item;
 mod deploy_result;
 mod executable_deploy_item;

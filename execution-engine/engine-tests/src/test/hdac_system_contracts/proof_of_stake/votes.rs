@@ -1,6 +1,6 @@
 use num_traits::identities::Zero;
 
-use engine_core::engine_state::genesis::GenesisAccount;
+use engine_core::engine_state::genesis::{DelegateKey, Delegator, GenesisAccount};
 use engine_shared::motes::Motes;
 use engine_test_support::{
     internal::{utils, ExecuteRequestBuilder, InMemoryWasmTestBuilder},
@@ -53,9 +53,26 @@ fn should_run_successful_vote_and_unvote_after_bonding() {
         ),
     ];
 
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR_DAPP_1),
+                PublicKey::new(ACCOUNT_1_ADDR_DAPP_1),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_3_ADDR_USER_1),
+                PublicKey::new(ACCOUNT_3_ADDR_USER_1),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+    ];
+
     let mut builder = InMemoryWasmTestBuilder::default();
     let result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .finish();
 
     let pos_uref = builder.get_pos_contract_uref();
@@ -223,9 +240,26 @@ fn should_fail_to_vote_more_than_bonded() {
             Motes::new(GENESIS_VALIDATOR_STAKE.into()),
         ),
     ];
+
+    let delegators = vec![
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_1_ADDR_DAPP_1),
+                PublicKey::new(ACCOUNT_1_ADDR_DAPP_1),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+        Delegator::new(
+            DelegateKey::new(
+                PublicKey::new(ACCOUNT_3_ADDR_USER_1),
+                PublicKey::new(ACCOUNT_3_ADDR_USER_1),
+            ),
+            Motes::new(GENESIS_VALIDATOR_STAKE.into()),
+        ),
+    ];
     let mut builder = InMemoryWasmTestBuilder::default();
     let _result = builder
-        .run_genesis(&utils::create_genesis_config(accounts))
+        .run_genesis(&utils::create_genesis_config(accounts, delegators))
         .finish();
 
     //
