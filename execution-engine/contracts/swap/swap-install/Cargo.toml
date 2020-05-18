@@ -1,0 +1,20 @@
+[package]
+name = "swap_install"
+version = "0.1.0"
+authors = ["Bryan <psy2848048@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+bench = false
+doctest = false
+
+[features]
+std = ["contract/std", "types/std"]
+lib = []
+enable-bonding = []
+
+[dependencies]
+contract = { path = "../../../contract", package = "casperlabs-contract", features = ["std"] }
+types = { path = "../../../types", package = "casperlabs-types", features = ["std"] }
+swap_logic = { path = "../swap-logic", package = "swap_logic", features = ["lib"] }

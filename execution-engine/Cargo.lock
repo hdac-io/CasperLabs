@@ -2732,6 +2732,15 @@ version = "2.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "swap_install"
+version = "0.1.0"
+dependencies = [
+ "casperlabs-contract 0.4.1",
+ "casperlabs-types 0.4.1",
+ "swap_logic 0.1.0",
+]
+
+[[package]]
 name = "swap_logic"
 version = "0.1.0"
 dependencies = [
