@@ -1,12 +1,7 @@
 extern crate hex;
 
-use alloc::{
-    string::String,
-    vec::Vec,
-};
+use alloc::string::String;
 use sha2::{Sha256, Digest};
-
-use contract::contract_api::runtime;
 
 use secp256k1::{
     self, Message, PublicKey as Ver1PubKey, Signature,

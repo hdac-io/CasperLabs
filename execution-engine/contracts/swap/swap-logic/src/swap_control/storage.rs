@@ -1,7 +1,6 @@
 use alloc::{
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeMap,
     string::{String, ToString},
-    vec::Vec,
 };
 use core::{
     fmt::Write,
@@ -15,17 +14,11 @@ use contract::{
 };
 
 use types::{
-    account::PublicKey, ApiError, CLValue, Key, URef, U512,
+    account::PublicKey, ApiError, URef, U512,
     system_contract_errors::pos::Error,
-    bytesrepr::{self, FromBytes, ToBytes, U32_SERIALIZED_LENGTH},
 };
 
-const new_mainnet_addr_key: &str = "new_mainnet_addr";
-const prev_balance_key: &str = "prev_balance";
-const kyc_level_key: &str = "kyc_level";
-const is_sent_token_for_swap_key: &str = "is_sent_token_for_swap";
-const kyc_step_key: &str = "kyc_step";
-const swapped_amount_key: &str = "swapped_amount";
+use crate::constants::{keys, users};
 
 // struct UnitSwapData {
 //     new_mainnet_addr: PublicKey - 32-byted address. This will be bech32fied in string representation
@@ -58,13 +51,13 @@ impl UnitSwapData {
             Ok(PublicKey::ed25519_from(key_bytes))
         };
 
-        let new_mainnet_addr = to_publickey(unit_tree.get("new_mainnet_addr").unwrap_or_revert()).unwrap_or_revert();
+        let new_mainnet_addr = to_publickey(unit_tree.get(keys::KEY_NEW_MAINNET_ADDR_KEY).unwrap_or_revert()).unwrap_or_revert();
 
-        let prev_balance = U512::from_str_radix(unit_tree.get("prev_balance").unwrap_or_revert(), 10).unwrap_or_default();
-        let kyc_level = U512::from_str_radix(unit_tree.get("kyc_level").unwrap_or_revert(), 10).unwrap_or_default();
-        let is_sent_token_for_swap = U512::from_str_radix(unit_tree.get("is_sent_token_for_swap").unwrap_or_revert(), 10).unwrap_or_default();
-        let kyc_step = U512::from_str_radix(unit_tree.get("kyc_step").unwrap_or_revert(), 10).unwrap_or_default();
-        let swapped_amount = U512::from_str_radix(unit_tree.get("swapped_amount").unwrap_or_revert(), 10).unwrap_or_default();
+        let prev_balance = U512::from_str_radix(unit_tree.get(keys::KEY_PREV_BALANCE_KEY).unwrap_or_revert(), 10).unwrap_or_default();
+        let kyc_level = U512::from_str_radix(unit_tree.get(keys::KEY_KYC_LEVEL).unwrap_or_revert(), 10).unwrap_or_default();
+        let is_sent_token_for_swap = U512::from_str_radix(unit_tree.get(keys::KEY_IS_SENT_TOKEN_FOR_SWAP).unwrap_or_revert(), 10).unwrap_or_default();
+        let kyc_step = U512::from_str_radix(unit_tree.get(keys::KEY_KYC_STEP).unwrap_or_revert(), 10).unwrap_or_default();
+        let swapped_amount = U512::from_str_radix(unit_tree.get(keys::KEY_SWAPPED_AMOUNT).unwrap_or_revert(), 10).unwrap_or_default();
 
         UnitSwapData {
             new_mainnet_addr: new_mainnet_addr,
@@ -89,27 +82,27 @@ impl UnitSwapData {
         let new_mainnet_addr_string = to_hex_string(self.new_mainnet_addr);
 
         let mut prev_balance = String::new();
-        prev_balance.write_fmt(format_args!("{}", self.prev_balance));
+        prev_balance.write_fmt(format_args!("{}", self.prev_balance)).unwrap_or_default();
 
         let mut kyc_level = String::new();
-        kyc_level.write_fmt(format_args!("{}", self.kyc_level));
+        kyc_level.write_fmt(format_args!("{}", self.kyc_level)).unwrap_or_default();
 
         let mut is_sent_token_for_swap = String::new();
-        is_sent_token_for_swap.write_fmt(format_args!("{}", self.is_sent_token_for_swap));
+        is_sent_token_for_swap.write_fmt(format_args!("{}", self.is_sent_token_for_swap)).unwrap_or_default();
 
         let mut kyc_step = String::new();
-        kyc_step.write_fmt(format_args!("{}", self.kyc_step));
+        kyc_step.write_fmt(format_args!("{}", self.kyc_step)).unwrap_or_default();
 
         let mut swapped_amount = String::new();
-        swapped_amount.write_fmt(format_args!("{}", self.swapped_amount));
+        swapped_amount.write_fmt(format_args!("{}", self.swapped_amount)).unwrap_or_default();
 
         let mut res: BTreeMap<String, String> = BTreeMap::new();
-        res.insert(new_mainnet_addr_key.to_string(), new_mainnet_addr_string);
-        res.insert(prev_balance_key.to_string(), prev_balance);
-        res.insert(kyc_level_key.to_string(), kyc_level);
-        res.insert(is_sent_token_for_swap_key.to_string(), is_sent_token_for_swap);
-        res.insert(kyc_step_key.to_string(), kyc_step);
-        res.insert(swapped_amount_key.to_string(), swapped_amount);
+        res.insert(keys::KEY_NEW_MAINNET_ADDR_KEY.to_string(), new_mainnet_addr_string);
+        res.insert(keys::KEY_PREV_BALANCE_KEY.to_string(), prev_balance);
+        res.insert(keys::KEY_KYC_LEVEL.to_string(), kyc_level);
+        res.insert(keys::KEY_IS_SENT_TOKEN_FOR_SWAP.to_string(), is_sent_token_for_swap);
+        res.insert(keys::KEY_KYC_STEP.to_string(), kyc_step);
+        res.insert(keys::KEY_SWAPPED_AMOUNT.to_string(), swapped_amount);
 
         res
     }
@@ -138,7 +131,7 @@ pub fn save_data(ver1_pubkey: String, unit_data: UnitSwapData) {
 }
 
 pub fn load_admin() -> PublicKey {
-    let admin_pubkey_uref: URef = runtime::get_key("admin")
+    let admin_pubkey_uref: URef = runtime::get_key(users::KEY_ADMIN)
         .unwrap_or_revert_with(ApiError::GetKey)
         .try_into()
         .unwrap_or_revert();

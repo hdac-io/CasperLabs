@@ -11,7 +11,7 @@ use contract::contract_api::{runtime, system, account};
 use types::{
     account::PublicKey,
     system_contract_errors::mint::{Error as MintError},
-    Key, U512, TransferResult, ApiError,
+    U512, TransferResult, ApiError,
 };
 
 // Admin features
@@ -87,23 +87,25 @@ pub fn send_token_and_update_swapped_amount(
     signature_hex: String,
     swap_request_amount: U512,
 ) {
+    let mut curr_data = storage::load_data(ver1_pubkey_hex.clone());
+
     // Message & Signature check of ver1 mainnet
     if !signature_verification(ver1_pubkey_hex.clone(), message, signature_hex) {
         runtime::revert(ApiError::NoAccessRights);
     }
 
-    let mut curr_data = storage::load_data(ver1_pubkey_hex.clone());
-
     // Check & calculate the maximum swapable amount
+    // Case 1: normal
     let mut updated_swap_request_amount = swap_request_amount.clone();
 
+    // Case 2: Swap range remains but not match to swap request
     if curr_data.swapped_amount + swap_request_amount > curr_data.prev_balance 
-        && curr_data.swapped_amount < curr_data.prev_balance
-    {
+        && curr_data.swapped_amount < curr_data.prev_balance {
         updated_swap_request_amount = curr_data.prev_balance - curr_data.swapped_amount;
-    } else if curr_data.swapped_amount + swap_request_amount > curr_data.prev_balance 
-        && curr_data.swapped_amount >= curr_data.prev_balance
-    {
+    }
+    // Case 3: Swap range exceeded
+    else if curr_data.swapped_amount + swap_request_amount > curr_data.prev_balance 
+        && curr_data.swapped_amount >= curr_data.prev_balance {
         runtime::revert(MintError::ExceededSwapRange);
     }
 

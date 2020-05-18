@@ -10,13 +10,11 @@ use alloc::{
 };
 
 use contract::{
-    contract_api::{runtime, system, account},
+    contract_api::runtime,
     unwrap_or_revert::UnwrapOrRevert,
 };
 use types::{
-    account::PublicKey,
-    system_contract_errors::mint::{Error as MintError},
-    Key, U512, ApiError,
+    account::PublicKey, U512, ApiError,
 };
 use crate::constants::methods;
 
