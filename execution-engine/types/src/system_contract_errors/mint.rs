@@ -38,6 +38,12 @@ pub enum Error {
     /// Purse not found while trying to get balance.
     #[fail(display = "Purse not found")]
     PurseNotFound = 7,
+    // Swap request exceeded the possible range
+    #[fail(display = "Swap request exceeded the possible range")]
+    ExceededSwapRange = 8,
+    // Swap request exceeded the allowance
+    #[fail(display = "Swap request exceeded the allowance")]
+    ExceededSwapAllowanceByKyc = 9,
 }
 
 impl From<PurseError> for Error {
