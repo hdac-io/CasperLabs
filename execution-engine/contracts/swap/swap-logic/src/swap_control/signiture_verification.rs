@@ -19,16 +19,16 @@ pub fn signature_verification(
     ver1_pubkey_byted_arr.copy_from_slice(&ver1_pubkey_bytes.as_slice()[0..33]);
     let ver1_pubkey: Ver1PubKey = Ver1PubKey::parse_compressed(&ver1_pubkey_byted_arr).expect("Invalid hex string of public key");
 
-    let mut sha256hasher = Sha256::new();
+    // Message is already hashed. Don't have to hash again in here.
     let message_bytes = hex::decode(message).expect("Message decode failed");
-    sha256hasher.input(message_bytes);
     let mut hashed_msg: [u8; 32] = [0u8; 32];
-    hashed_msg.copy_from_slice(&sha256hasher.result().as_slice()[0..32]);
+    hashed_msg.copy_from_slice(&message_bytes);
     let message_struct = Message::parse(&hashed_msg);
 
+    // 64-byted signature, not DER-encoded 71 byte
     let signature_vec = hex::decode(signature_hex.clone()).expect("Decode failed");
     let signature_byte: &[u8] = signature_vec.as_slice();
-    let signature_obj = Signature::parse_der_lax(signature_byte).expect("Invalid signature");
+    let signature_obj = Signature::parse_slice(signature_byte).expect("Invalid signature");
     
     secp256k1::verify(&message_struct, &signature_obj, &ver1_pubkey)
 }

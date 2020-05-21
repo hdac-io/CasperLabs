@@ -114,16 +114,16 @@ pub fn send_token_and_update_swapped_amount(
     curr_data.swapped_amount += updated_swap_request_amount;
     storage::save_data(ver1_address, curr_data);
 
-    let transfer_res: TransferResult =
-        system::transfer_from_purse_to_account(
-            account::get_main_purse(),
-            curr_data.new_mainnet_addr,
-            updated_swap_request_amount,
-        );
+    // let transfer_res: TransferResult =
+    //     system::transfer_from_purse_to_account(
+    //         account::get_main_purse(),
+    //         curr_data.new_mainnet_addr,
+    //         updated_swap_request_amount,
+    //     );
 
-    if let Err(err) = transfer_res {
-        runtime::revert(err);
-    }
+    // if let Err(err) = transfer_res {
+    //     runtime::revert(err);
+    // }
 }
 
 #[cfg(test)]

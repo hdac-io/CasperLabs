@@ -24,22 +24,11 @@ const GENESIS_VALIDATOR_STAKE: u64 = 5u64 * BIGSUN_TO_HDAC;
 const ACCOUNT_1_DELEGATE_AMOUNT: u64 = BIGSUN_TO_HDAC;
 const SYSTEM_ACC_SUPPORT: u64 = 5u64 * BIGSUN_TO_HDAC;
 
-const VER1_ADDRESS: &str = "HR1VnNw3qXRN9UP5Zww8h93HYqcSot4MEd";
-// TODO: the pubkey & signature are not related with the address
-const VER1_PUBKEY: &str = "0223bec70d670d29a30d9bcee197910e37cf2a10f0dc3c5ac44d865aec0d7052fb";
-// const VER1_MESSAGE: &str = "020000000001011333183ddf384da83ed49296136c70d206ad2b19331bf25d390e69b2221\
-//                             65e370000000017160014b93f973eb2bf0b614bddc0f47286788c98c535b4feffffff0200\
-//                             e1f5050000000017a914a860f76561c85551594c18eecceffaee8c4822d787f0c1a435000\
-//                             0000017a914d8b6fcc85a383261df05423ddf068a8987bf028787024730440220434caf5b\
-//                             b442cb6a251e8bce0ec493f9a1a9c4423bcfc029e542b0e8a89d1b3f022011090d4e98f79\
-//                             c62b188245a4aa4eb77e912bfd57e0a9b9a1c5e65f2b39f3ab401210223bec70d670d29a3\
-//                             0d9bcee197910e37cf2a10f0dc3c5ac44d865aec0d7052fb8c000000";
-const VER1_MESSAGE: &str = "02000000011333183ddf384da83ed49296136c70d206ad2b19331bf25d390e69b222165e3\
-                            70000000000feffffff0200e1f5050000000017a914a860f76561c85551594c18eecceffa\
-                            ee8c4822d787F0C1A4350000000017a914d8b6fcc85a383261df05423ddf068a8987bf028\
-                            7878c000000";
-const VER1_SIGNATURE: &str = "30440220434caf5bb442cb6a251e8bce0ec493f9a1a9c4423bcfc029e542b0e8a89d1b3\
-                              f022011090d4e98f79c62b188245a4aa4eb77e912bfd57e0a9b9a1c5e65f2b39f3ab401";
+const VER1_ADDRESS: &str = "HLkXSESzSaDZgU25CQrmxkjRayKfs5xBFK";
+const VER1_PUBKEY: &str = "02c4ef70543e18889167ca67c8aa28c1d4c259e89cb34483a8ed6cfd3a03e8246b";
+const VER1_MESSAGE_HASHED: &str = "69046d44e3d75d48436377626372a44a5066966b5d72c00b67769c1cc6a8619a";
+const VER1_SIGNATURE: &str = "24899366fd3d5dfe6740df1e5f467a53f1a3aaafce26d8df1497a925c55b5c266339a95fe6\
+                              507bd611b0e3b6e74e3bb7f19eeb1165615e5cebe7f40e5765bc41";
 const VER1_AMOUNT: u64 = 10_000;
 const SWAP_TRIAL: u64 = 6_000;
 
@@ -242,7 +231,7 @@ fn should_run_insert_update_info_and_swap_step() {
     let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
         ADMIN_PUBKEY,
         swap_contract_hash,
-        ("get_token", VER1_ADDRESS, VER1_PUBKEY, VER1_MESSAGE, VER1_SIGNATURE, U512::from(SWAP_TRIAL)),
+        ("get_token", VER1_ADDRESS, VER1_PUBKEY, VER1_MESSAGE_HASHED, VER1_SIGNATURE, U512::from(SWAP_TRIAL)),
     )
     .build();
 
