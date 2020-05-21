@@ -22,9 +22,6 @@ pub extern "C" fn call() {
     runtime::put_key(KEY_ADMIN, admin_uref.into());
 
     // Swap function storage
-    let swap_function_pointer = storage::store_function(NAME_SWAP_LOGIC_EXT, Default::default())
-        .into_uref()
-        .unwrap_or_revert_with(ApiError::UnexpectedContractRefVariant);
-
+    let swap_function_pointer = storage::store_function_at_hash(NAME_SWAP_LOGIC_EXT, Default::default());
     runtime::put_key(NAME_SWAP, swap_function_pointer.into());
 }

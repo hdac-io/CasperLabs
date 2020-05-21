@@ -82,12 +82,13 @@ pub fn update_kyc_step(
 // user features
 
 pub fn send_token_and_update_swapped_amount(
+    ver1_address: String,
     ver1_pubkey_hex: String,
     message: String,
     signature_hex: String,
     swap_request_amount: U512,
 ) {
-    let mut curr_data = storage::load_data(ver1_pubkey_hex.clone());
+    let mut curr_data = storage::load_data(ver1_address.clone());
 
     // Message & Signature check of ver1 mainnet
     if !signature_verification(ver1_pubkey_hex.clone(), message, signature_hex) {
@@ -111,7 +112,7 @@ pub fn send_token_and_update_swapped_amount(
 
     // Update data
     curr_data.swapped_amount += updated_swap_request_amount;
-    storage::save_data(ver1_pubkey_hex, curr_data);
+    storage::save_data(ver1_address, curr_data);
 
     let transfer_res: TransferResult =
         system::transfer_from_purse_to_account(

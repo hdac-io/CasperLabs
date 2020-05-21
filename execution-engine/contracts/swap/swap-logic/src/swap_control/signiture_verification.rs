@@ -2,6 +2,8 @@ extern crate hex;
 
 use alloc::string::String;
 use sha2::{Sha256, Digest};
+use contract::contract_api::{runtime};
+use types::ApiError;
 
 use secp256k1::{
     self, Message, PublicKey as Ver1PubKey, Signature,
@@ -24,9 +26,9 @@ pub fn signature_verification(
     hashed_msg.copy_from_slice(&sha256hasher.result().as_slice()[0..32]);
     let message_struct = Message::parse(&hashed_msg);
 
-    let signature_vec = hex::decode(signature_hex).expect("Decode failed");
+    let signature_vec = hex::decode(signature_hex.clone()).expect("Decode failed");
     let signature_byte: &[u8] = signature_vec.as_slice();
-    let signature_obj = Signature::parse_slice(signature_byte).expect("Invalid signature");
+    let signature_obj = Signature::parse_der_lax(signature_byte).expect("Invalid signature");
     
     secp256k1::verify(&message_struct, &signature_obj, &ver1_pubkey)
 }
