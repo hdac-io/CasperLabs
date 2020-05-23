@@ -7,6 +7,7 @@ extern crate alloc;
 
 use alloc::{
     string::String,
+    vec::Vec,
 };
 
 use contract::{
@@ -73,28 +74,28 @@ pub extern "C" fn delegate() {
         }
 
         methods::METHOD_GET_TOKEN => {
-            let ver1_address: String = runtime::get_arg(1)
+            let ver1_address_arr: Vec<String> = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let ver1_pubkey_hex: String = runtime::get_arg(2)
+            let ver1_pubkey_hex_arr: Vec<String> = runtime::get_arg(2)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let message: String = runtime::get_arg(3)
+            let message_arr: Vec<String> = runtime::get_arg(3)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let signature_hex: String = runtime::get_arg(4)
+            let signature_hex_arr: Vec<String> = runtime::get_arg(4)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let swap_request_amount: U512 = runtime::get_arg(5)
+            let swap_request_amount_arr: Vec<U512> = runtime::get_arg(5)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-            swap_control::send_token_and_update_swapped_amount(
-                ver1_address,
-                ver1_pubkey_hex,
-                message,
-                signature_hex,
-                swap_request_amount
+            swap_control::validate_sign_and_update_swapped_amount(
+                ver1_address_arr,
+                ver1_pubkey_hex_arr,
+                message_arr,
+                signature_hex_arr,
+                swap_request_amount_arr
             );
         }
 

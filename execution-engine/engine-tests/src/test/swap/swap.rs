@@ -231,7 +231,14 @@ fn should_run_insert_update_info_and_swap_step() {
     let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
         ADMIN_PUBKEY,
         swap_contract_hash,
-        ("get_token", VER1_ADDRESS, VER1_PUBKEY, VER1_MESSAGE_HASHED, VER1_SIGNATURE, U512::from(SWAP_TRIAL)),
+        (
+            "get_token",
+            vec![VER1_ADDRESS],
+            vec![VER1_PUBKEY],
+            vec![VER1_MESSAGE_HASHED],
+            vec![VER1_SIGNATURE],
+            vec![U512::from(SWAP_TRIAL)]
+        ),
     )
     .build();
 

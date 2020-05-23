@@ -1,0 +1,18 @@
+[package]
+name = "swap-proxy"
+version = "0.1.0"
+authors = ["joonho <jhyeom26@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["lib", "cdylib"]
+bench = false
+doctest = false
+
+[features]
+std = ["contract/std"]
+lib = []
+
+[dependencies]
+contract = { path = "../../../contract", package = "casperlabs-contract" }
+types = { path = "../../../types", package = "casperlabs-types" }

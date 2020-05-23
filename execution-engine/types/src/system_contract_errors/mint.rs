@@ -44,6 +44,9 @@ pub enum Error {
     /// Swap request exceeded the allowance
     #[fail(display = "Swap request exceeded the allowance")]
     ExceededSwapAllowanceByKyc = 9,
+    /// Insufficient number of swap parameters
+    #[fail(display = "Insufficient number of swap parameters")]
+    InsufficientNumOfSwapParams = 10,
 }
 
 impl From<PurseError> for Error {
