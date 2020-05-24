@@ -18,3 +18,4 @@ enable-bonding = []
 contract = { path = "../../../contract", package = "casperlabs-contract", features = ["std"] }
 types = { path = "../../../types", package = "casperlabs-types", features = ["std"] }
 swap_logic = { path = "../swap-logic", package = "swap_logic", features = ["lib"] }
+swap_proxy = { path = "../swap-proxy", package = "swap_proxy", features = ["lib"] }

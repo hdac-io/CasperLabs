@@ -9,11 +9,12 @@ use alloc::{
 
 use contract::{
     contract_api::{runtime, storage},
+    unwrap_or_revert::UnwrapOrRevert,
 };
-use types::{URef, Key};
+use types::{URef, Key, ApiError, CLValue};
 
 const KEY_ADMIN: &str = "admin";
-const NAME_SWAP: &str = "swap";
+const NAME_SWAP_UREF: &str = "swap_urefs";
 const NAME_SWAP_LOGIC_EXT: &str = "swap_logic_ext";
 
 #[no_mangle]
@@ -27,12 +28,18 @@ pub extern "C" fn call() {
     let admin_uref: URef = storage::new_uref(runtime::get_caller());
 
     // create map of references for stored contract
-    // let mut swapper_urefs: BTreeMap<String, Key> = BTreeMap::new();
-    // swapper_urefs.insert(String::from(KEY_ADMIN), admin_uref.into());
-    runtime::put_key(KEY_ADMIN, admin_uref.into());
+    let mut swapper_urefs: BTreeMap<String, Key> = BTreeMap::new();
+    swapper_urefs.insert(String::from(KEY_ADMIN), admin_uref.into());
 
     // Swap function storage
-    // let swap_function_pointer = storage::store_function_at_hash(NAME_SWAP_LOGIC_EXT, swapper_urefs);
-    let swap_function_pointer = storage::store_function_at_hash(NAME_SWAP_LOGIC_EXT, Default::default());
-    runtime::put_key(NAME_SWAP, swap_function_pointer.into());
+    let swap_function_pointer: URef =
+        storage::store_function(NAME_SWAP_LOGIC_EXT, swapper_urefs)
+            .into_uref()
+            .unwrap_or_revert_with(ApiError::UnexpectedContractRefVariant);
+    runtime::put_key(NAME_SWAP_UREF, swap_function_pointer.into());
+
+    swap_proxy::deploy_swap_proxy(swap_function_pointer);
+
+    let return_value = CLValue::from_t(swap_function_pointer).unwrap_or_revert();
+    runtime::ret(return_value);
 }

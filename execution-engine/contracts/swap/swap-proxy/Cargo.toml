@@ -1,5 +1,5 @@
 [package]
-name = "swap-proxy"
+name = "swap_proxy"
 version = "0.1.0"
 authors = ["joonho <jhyeom26@gmail.com>"]
 edition = "2018"
@@ -14,5 +14,5 @@ std = ["contract/std"]
 lib = []
 
 [dependencies]
-contract = { path = "../../../contract", package = "casperlabs-contract" }
-types = { path = "../../../types", package = "casperlabs-types" }
+contract = { path = "../../../contract", package = "casperlabs-contract", features=["std"] }
+types = { path = "../../../types", package = "casperlabs-types", features=["std"] }
