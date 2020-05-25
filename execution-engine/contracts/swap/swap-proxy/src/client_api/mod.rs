@@ -10,7 +10,7 @@ use contract::{
     contract_api::runtime,
     unwrap_or_revert::UnwrapOrRevert,
 };
-use types::{account::PublicKey, ApiError, ContractRef, U512};
+use types::{account::PublicKey, ApiError, ContractRef, URef, U512};
 
 use error::Error;
 
@@ -166,11 +166,12 @@ impl Api {
                 )
             }
             Self::GetToken(ver1_address_arr, ver1_pubkey_arr, message_arr, signature_arr, amount_arr) => {
+                // TODO: Here, cannot get contract uref
                 let swap_ref = get_contract_ref();
                 runtime::call_contract(
                     swap_ref,
                     (
-                        method_names::proxy::METHOD_UPDATE_KYC_STEP,
+                        method_names::proxy::METHOD_GET_TOKEN,
                         ver1_address_arr.clone(),
                         ver1_pubkey_arr.clone(),
                         message_arr.clone(),

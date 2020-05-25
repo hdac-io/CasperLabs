@@ -3,16 +3,17 @@ use alloc::{
     collections::BTreeMap,
     string::{String, ToString},
 };
-
+use core::convert::{TryInto, TryFrom};
 use num_traits::identities::Zero;
 
 use engine_core::engine_state::genesis::GenesisAccount;
-use engine_shared::{motes::Motes, stored_value::StoredValue, account::Account};
+use engine_shared::{motes::Motes, stored_value::StoredValue, account::Account, contract::Contract};
 use engine_test_support::{
     internal::{utils, ExecuteRequestBuilder, InMemoryWasmTestBuilder},
     DEFAULT_ACCOUNT_INITIAL_BALANCE,
 };
-use types::{account::PublicKey, bytesrepr::ToBytes, U512, Key};
+use types::{account::PublicKey, bytesrepr::ToBytes, U512, Key, URef};
+use contract::unwrap_or_revert::UnwrapOrRevert;
 
 const CONTRACT_POS_VOTE: &str = "swap_install.wasm";
 const BIGSUN_TO_HDAC: u64 = 1_000_000_000_000_000_000_u64;
@@ -43,16 +44,35 @@ fn get_account(builder: &InMemoryWasmTestBuilder, account: PublicKey) -> Account
     }
 }
 
+fn get_contract(builder: &InMemoryWasmTestBuilder, contract_uref: URef) -> Contract {
+    builder
+        .get_contract(contract_uref.remove_access_rights())
+        .expect("should have contract")
+}
+
 fn get_swap_hash(builder: &InMemoryWasmTestBuilder) -> [u8; 32] {
     // query client_api_proxy_hash from SYSTEM_ACCOUNT
     let admin_account = get_account(builder, ADMIN_PUBKEY);
 
     admin_account
         .named_keys()
-        .get("swap")
+        .get("swap_proxy")
         .expect("should get swap key")
         .into_hash()
         .expect("should be hash")
+}
+
+fn get_swap_uref(builder: &InMemoryWasmTestBuilder) -> URef {
+    // query client_api_proxy_hash from SYSTEM_ACCOUNT
+    let admin_account = get_account(builder, ADMIN_PUBKEY);
+
+    let uref_key = admin_account
+        .named_keys()
+        .get("swap_uref")
+        .expect("should get swap key");
+
+    URef::try_from(*uref_key)
+        .expect("uref extract fail")
 }
 
 #[ignore]
@@ -130,8 +150,9 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let account = get_account(&builder, ADMIN_PUBKEY);
-    assert!(account.named_keys().contains_key(VER1_ADDRESS));
+    let contract_uref = get_swap_uref(&builder);
+    let contract_obj = get_contract(&builder, contract_uref);
+    assert_eq!(contract_obj.named_keys().contains_key(VER1_ADDRESS), true);
 
     // Update KYC level
     println!("3. Update KYC level");
@@ -149,8 +170,9 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let account = get_account(&builder, ADMIN_PUBKEY);
-    let address_uref = account
+    let contract_uref = get_swap_uref(&builder);
+    let contract_obj = get_contract(&builder, contract_uref);
+    let address_uref = contract_obj
         .named_keys()
         .get(VER1_ADDRESS)
         .expect("should have ver1 address as a key");
@@ -180,8 +202,9 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let account = get_account(&builder, ADMIN_PUBKEY);
-    let address_uref = account
+    let contract_uref = get_swap_uref(&builder);
+    let contract_obj = get_contract(&builder, contract_uref);
+    let address_uref = contract_obj
         .named_keys()
         .get(VER1_ADDRESS)
         .expect("should have ver1 address as a key");
@@ -211,8 +234,9 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let account = get_account(&builder, ADMIN_PUBKEY);
-    let address_uref = account
+    let contract_uref = get_swap_uref(&builder);
+    let contract_obj = get_contract(&builder, contract_uref);
+    let address_uref = contract_obj
         .named_keys()
         .get(VER1_ADDRESS)
         .expect("should have ver1 address as a key");
@@ -226,10 +250,13 @@ fn should_run_insert_update_info_and_swap_step() {
         .expect("should cast CLValue to BTreeMap");
     assert_eq!(value.get("kyc_step").unwrap(), "1");
 
+    println!("{:?}", contract_obj.named_keys());
+
     // Update KYC step
     println!("6. Get token");
     let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
-        ADMIN_PUBKEY,
+        //ADMIN_PUBKEY,
+        ACCOUNT_1_PUBKEY,
         swap_contract_hash,
         (
             "get_token",
@@ -249,8 +276,9 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let account = get_account(&builder, ADMIN_PUBKEY);
-    let address_uref = account
+    let contract_uref = get_swap_uref(&builder);
+    let contract_obj = get_contract(&builder, contract_uref);
+    let address_uref = contract_obj
         .named_keys()
         .get(VER1_ADDRESS)
         .expect("should have ver1 address as a key");

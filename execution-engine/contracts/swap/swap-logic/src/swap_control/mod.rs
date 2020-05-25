@@ -100,12 +100,12 @@ pub fn validate_sign_and_update_swapped_amount(
     }
 
     for i in 0..ver1_address.len() {
-        let mut curr_data = storage::load_data(ver1_address[i].clone());
-
         // Message & Signature check of ver1 mainnet
         if !signature_verification(ver1_pubkey_hex[i].clone(), message[i].clone(), signature_hex[i].clone()) {
             runtime::revert(ApiError::NoAccessRights);
         }
+
+        let mut curr_data = storage::load_data(ver1_address[i].clone());
 
         // Check & calculate the maximum swapable amount
         // Case 1: normal
