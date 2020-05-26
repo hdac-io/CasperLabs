@@ -1,23 +1,15 @@
 #![cfg_attr(not(test), no_std)]
 
-mod swap_control;
 mod constants;
+mod swap_control;
 
 extern crate alloc;
 
-use alloc::{
-    string::String,
-    vec::Vec,
-};
+use alloc::{string::String, vec::Vec};
 
-use contract::{
-    contract_api::runtime,
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use types::{
-    account::PublicKey, U512, URef, ApiError, ContractRef, Key
-};
 use crate::constants::methods;
+use contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
+use types::{account::PublicKey, ApiError, Key, U512};
 
 #[no_mangle]
 pub extern "C" fn delegate() {
@@ -66,7 +58,10 @@ pub extern "C" fn delegate() {
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-            swap_control::update_status_is_sent_token_for_swap(ver1_address, is_sent_token_for_swap);
+            swap_control::update_status_is_sent_token_for_swap(
+                ver1_address,
+                is_sent_token_for_swap,
+            );
         }
 
         methods::METHOD_UPDATE_KYC_STEP => {
@@ -102,7 +97,7 @@ pub extern "C" fn delegate() {
                 ver1_pubkey_hex_arr,
                 message_arr,
                 signature_hex_arr,
-                swap_request_amount_arr
+                swap_request_amount_arr,
             );
         }
 

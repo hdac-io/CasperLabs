@@ -3,8 +3,7 @@ use alloc::{
     collections::BTreeMap,
     string::{String, ToString},
 };
-use core::convert::{TryInto, TryFrom};
-use num_traits::identities::Zero;
+use core::convert::TryFrom;
 
 use engine_core::engine_state::genesis::GenesisAccount;
 use engine_shared::{motes::Motes, stored_value::StoredValue, account::Account, contract::Contract};
@@ -12,8 +11,7 @@ use engine_test_support::{
     internal::{utils, ExecuteRequestBuilder, InMemoryWasmTestBuilder},
     DEFAULT_ACCOUNT_INITIAL_BALANCE,
 };
-use types::{account::PublicKey, bytesrepr::ToBytes, U512, Key, URef, ContractRef, CLValue};
-use contract::unwrap_or_revert::UnwrapOrRevert;
+use types::{account::PublicKey, U512, Key, URef, CLValue};
 
 const CONTRACT_POS_VOTE: &str = "swap_install.wasm";
 const BIGSUN_TO_HDAC: u64 = 1_000_000_000_000_000_000_u64;

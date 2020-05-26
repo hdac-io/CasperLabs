@@ -1,16 +1,9 @@
 mod error;
 
-use alloc::{
-    string::String,
-    vec::Vec
-};
-use core::convert::TryInto;
+use alloc::{string::String, vec::Vec};
 
-use contract::{
-    contract_api::runtime,
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use types::{account::PublicKey, ApiError, ContractRef, URef, Key, U512};
+use contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
+use types::{account::PublicKey, ApiError, ContractRef, Key, U512};
 
 use error::Error;
 
@@ -22,7 +15,8 @@ pub mod method_names {
         pub const METHOD_SET_SWAP_HASH: &str = swap::METHOD_SET_SWAP_HASH;
         pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = swap::METHOD_INSERT_SNAPSHOT_RECORD;
         pub const METHOD_UPDATE_KYC_LEVEL: &str = swap::METHOD_UPDATE_KYC_LEVEL;
-        pub const METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT: &str = swap::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT;
+        pub const METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT: &str =
+            swap::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT;
         pub const METHOD_UPDATE_KYC_STEP: &str = swap::METHOD_UPDATE_KYC_STEP;
         pub const METHOD_GET_TOKEN: &str = swap::METHOD_GET_TOKEN;
     }
@@ -30,7 +24,8 @@ pub mod method_names {
         pub const METHOD_SET_SWAP_HASH: &str = "set_swap_hash";
         pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = "insert_snapshot_record";
         pub const METHOD_UPDATE_KYC_LEVEL: &str = "update_kyc_level";
-        pub const METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT: &str = "update_status_swapable_token_sent";
+        pub const METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT: &str =
+            "update_status_swapable_token_sent";
         pub const METHOD_UPDATE_KYC_STEP: &str = "update_kyc_step";
         pub const METHOD_GET_TOKEN: &str = "get_token";
     }
@@ -42,15 +37,20 @@ pub enum Api {
     UpdateKYCLevel(String, U512),
     UpdateStatusSwapableTokenSent(String, U512),
     UpdateKYCStep(String, U512),
-    GetToken(Key, Vec<String>, Vec<String>, Vec<String>, Vec<String>, Vec<U512>),
+    GetToken(
+        Key,
+        Vec<String>,
+        Vec<String>,
+        Vec<String>,
+        Vec<String>,
+        Vec<U512>,
+    ),
 }
 
 fn get_contract_ref() -> ContractRef {
     let contract_hash = runtime::get_key(method_names::proxy::NAME_SWAP_HASH)
         .unwrap_or_revert_with(ApiError::GetKey);
-    contract_hash
-        .to_contract_ref()
-        .unwrap_or_revert()
+    contract_hash.to_contract_ref().unwrap_or_revert()
 }
 
 impl Api {
@@ -125,7 +125,14 @@ impl Api {
                 let swap_amount: Vec<U512> = runtime::get_arg(6)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                Api::GetToken(contract_hash, ver1_address, ver1_pubkey, message, signature, swap_amount)
+                Api::GetToken(
+                    contract_hash,
+                    ver1_address,
+                    ver1_pubkey,
+                    message,
+                    signature,
+                    swap_amount,
+                )
             }
             _ => runtime::revert(Error::UnknownProxyApi),
         }
@@ -134,15 +141,10 @@ impl Api {
     pub fn invoke(&self) {
         match self {
             Self::SetSwapHash(swap_hash) => {
-                let contract_ref = swap_hash
-                    .to_contract_ref()
-                    .unwrap_or_revert();
+                let contract_ref = swap_hash.to_contract_ref().unwrap_or_revert();
                 runtime::call_contract(
                     contract_ref,
-                    (
-                        method_names::proxy::METHOD_SET_SWAP_HASH,
-                        *swap_hash
-                    )
+                    (method_names::proxy::METHOD_SET_SWAP_HASH, *swap_hash),
                 )
             }
             Self::InsertSnapshotRecord(ver1_address, new_mainnet_address, amount) => {
@@ -153,8 +155,8 @@ impl Api {
                         method_names::proxy::METHOD_INSERT_SNAPSHOT_RECORD,
                         ver1_address.clone(),
                         *new_mainnet_address,
-                        *amount
-                    )
+                        *amount,
+                    ),
                 )
             }
             Self::UpdateKYCLevel(ver1_address, kyc_level) => {
@@ -164,8 +166,8 @@ impl Api {
                     (
                         method_names::proxy::METHOD_UPDATE_KYC_LEVEL,
                         ver1_address.clone(),
-                        kyc_level.clone()
-                    )
+                        *kyc_level,
+                    ),
                 )
             }
             Self::UpdateStatusSwapableTokenSent(ver1_address, is_swapable_token_sent) => {
@@ -175,8 +177,8 @@ impl Api {
                     (
                         method_names::proxy::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT,
                         ver1_address.clone(),
-                        is_swapable_token_sent.clone()
-                    )
+                        *is_swapable_token_sent,
+                    ),
                 )
             }
             Self::UpdateKYCStep(ver1_address, kyc_step) => {
@@ -186,14 +188,19 @@ impl Api {
                     (
                         method_names::proxy::METHOD_UPDATE_KYC_STEP,
                         ver1_address.clone(),
-                        kyc_step.clone()
-                    )
+                        *kyc_step,
+                    ),
                 )
             }
-            Self::GetToken(swap_contract_hash, ver1_address_arr, ver1_pubkey_arr, message_arr, signature_arr, amount_arr) => {
-                let contract_ref = swap_contract_hash
-                    .to_contract_ref()
-                    .unwrap_or_revert();
+            Self::GetToken(
+                swap_contract_hash,
+                ver1_address_arr,
+                ver1_pubkey_arr,
+                message_arr,
+                signature_arr,
+                amount_arr,
+            ) => {
+                let contract_ref = swap_contract_hash.to_contract_ref().unwrap_or_revert();
 
                 runtime::call_contract(
                     contract_ref,
@@ -203,8 +210,8 @@ impl Api {
                         ver1_pubkey_arr.clone(),
                         message_arr.clone(),
                         signature_arr.clone(),
-                        amount_arr.clone()
-                    )
+                        amount_arr.clone(),
+                    ),
                 )
             }
         }

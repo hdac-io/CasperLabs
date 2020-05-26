@@ -2,16 +2,10 @@
 
 extern crate alloc;
 
-use alloc::{
-    collections::BTreeMap,
-    string::String,
-};
+use alloc::{collections::BTreeMap, string::String};
 
-use contract::{
-    contract_api::{runtime, storage},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use types::{URef, Key, ApiError, CLValue};
+use contract::contract_api::{runtime, storage};
+use types::{Key, URef};
 
 const KEY_ADMIN: &str = "admin";
 const NAME_SWAP_HASH: &str = "swap_hash";
@@ -32,8 +26,7 @@ pub extern "C" fn call() {
     swapper_urefs.insert(String::from(KEY_ADMIN), admin_uref.into());
 
     // Swap function storage
-    let swap_function_pointer =
-        storage::store_function_at_hash(NAME_SWAP_LOGIC_EXT, swapper_urefs);
+    let swap_function_pointer = storage::store_function_at_hash(NAME_SWAP_LOGIC_EXT, swapper_urefs);
 
     swap_proxy::deploy_swap_proxy();
     runtime::put_key(NAME_SWAP_HASH, swap_function_pointer.into());

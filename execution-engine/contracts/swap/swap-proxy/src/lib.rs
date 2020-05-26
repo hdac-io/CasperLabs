@@ -1,20 +1,11 @@
 #![no_std]
 
 extern crate alloc;
-
 mod client_api;
 
-use alloc::{
-    string::String,
-    collections::BTreeMap,
-};
-use contract::{
-    contract_api::{runtime, storage},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use types::{ContractRef, Key, ApiError};
+use contract::contract_api::{runtime, storage};
 
-use client_api::{Api, method_names};
+use client_api::Api;
 
 const SWAP_PROXY_NAME: &str = "swap_proxy";
 
@@ -31,9 +22,5 @@ pub fn deploy_swap_proxy() {
 #[cfg(not(feature = "lib"))]
 #[no_mangle]
 pub extern "C" fn call() {
-    let swap_logic_uref: URef = runtime::get_arg(0)
-        .unwrap_or_revert_with(ApiError::MissingArgument)
-        .unwrap_or_revert_with(ApiError::InvalidArgument);
-
-    deploy_swap_proxy(swap_logic_uref);
+    deploy_swap_proxy();
 }
