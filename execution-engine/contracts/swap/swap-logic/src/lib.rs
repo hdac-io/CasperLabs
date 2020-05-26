@@ -15,7 +15,7 @@ use contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use types::{
-    account::PublicKey, U512, ApiError,
+    account::PublicKey, U512, URef, ApiError, ContractRef, Key
 };
 use crate::constants::methods;
 
@@ -26,6 +26,13 @@ pub extern "C" fn delegate() {
         .unwrap_or_revert_with(ApiError::InvalidArgument);
 
     match method_name.as_str() {
+        methods::METHOD_SET_SWAP_HASH => {
+            let swap_hash_address: Key = runtime::get_arg(1)
+                .unwrap_or_revert_with(ApiError::MissingArgument)
+                .unwrap_or_revert_with(ApiError::InvalidArgument);
+
+            swap_control::set_swap_hash(swap_hash_address);
+        }
         methods::METHOD_INSERT_SNAPSHOT_RECORD => {
             let ver1_address: String = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)

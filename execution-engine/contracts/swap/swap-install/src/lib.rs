@@ -14,7 +14,7 @@ use contract::{
 use types::{URef, Key, ApiError, CLValue};
 
 const KEY_ADMIN: &str = "admin";
-const NAME_SWAP_UREF: &str = "swap_uref";
+const NAME_SWAP_HASH: &str = "swap_hash";
 const NAME_SWAP_LOGIC_EXT: &str = "swap_logic_ext";
 
 #[no_mangle]
@@ -32,16 +32,9 @@ pub extern "C" fn call() {
     swapper_urefs.insert(String::from(KEY_ADMIN), admin_uref.into());
 
     // Swap function storage
-    let swap_function_pointer: URef =
-        storage::store_function(NAME_SWAP_LOGIC_EXT, swapper_urefs)
-            .into_uref()
-            .unwrap_or_revert_with(ApiError::UnexpectedContractRefVariant);
-    // let swap_function_pointer =
-    //     storage::store_function_at_hash(NAME_SWAP_LOGIC_EXT, swapper_urefs)
-    //         .into_uref()
-    //         .unwrap_or_revert_with(ApiError::UnexpectedContractRefVariant);
+    let swap_function_pointer =
+        storage::store_function_at_hash(NAME_SWAP_LOGIC_EXT, swapper_urefs);
 
-    runtime::put_key(NAME_SWAP_UREF, swap_function_pointer.into());
-
-    swap_proxy::deploy_swap_proxy(swap_function_pointer.clone());
+    swap_proxy::deploy_swap_proxy();
+    runtime::put_key(NAME_SWAP_HASH, swap_function_pointer.into());
 }

@@ -12,7 +12,7 @@ use engine_test_support::{
     internal::{utils, ExecuteRequestBuilder, InMemoryWasmTestBuilder},
     DEFAULT_ACCOUNT_INITIAL_BALANCE,
 };
-use types::{account::PublicKey, bytesrepr::ToBytes, U512, Key, URef};
+use types::{account::PublicKey, bytesrepr::ToBytes, U512, Key, URef, ContractRef, CLValue};
 use contract::unwrap_or_revert::UnwrapOrRevert;
 
 const CONTRACT_POS_VOTE: &str = "swap_install.wasm";
@@ -62,17 +62,14 @@ fn get_swap_hash(builder: &InMemoryWasmTestBuilder) -> [u8; 32] {
         .expect("should be hash")
 }
 
-fn get_swap_uref(builder: &InMemoryWasmTestBuilder) -> URef {
+fn get_swap_stored_hash(builder: &InMemoryWasmTestBuilder) -> Key {
     // query client_api_proxy_hash from SYSTEM_ACCOUNT
     let admin_account = get_account(builder, ADMIN_PUBKEY);
 
-    let uref_key = admin_account
+    *admin_account
         .named_keys()
-        .get("swap_uref")
-        .expect("should get swap key");
-
-    URef::try_from(*uref_key)
-        .expect("uref extract fail")
+        .get("swap_hash")
+        .expect("should get swap key")
 }
 
 #[ignore]
@@ -133,6 +130,23 @@ fn should_run_insert_update_info_and_swap_step() {
         .finish();
 
     let swap_contract_hash = get_swap_hash(&builder);
+    let contract_ref = get_swap_stored_hash(&builder);
+
+    // Swap install pahse
+    println!("1-1. Input swap hash");
+    let set_swap_hash = ExecuteRequestBuilder::contract_call_by_hash(
+        ADMIN_PUBKEY,
+        swap_contract_hash,
+        ("set_swap_hash", contract_ref),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder
+        .exec(set_swap_hash)
+        .expect_success()
+        .commit()
+        .finish();
 
     // Input existing information
     println!("2. Ver1 Token info insert");
@@ -150,9 +164,16 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let contract_uref = get_swap_uref(&builder);
-    let contract_obj = get_contract(&builder, contract_uref);
-    assert_eq!(contract_obj.named_keys().contains_key(VER1_ADDRESS), true);
+    let contract_ref = get_swap_stored_hash(&builder);
+    let value: BTreeMap<String, String> = CLValue::try_from(
+            builder.query(Some(builder.get_post_state_hash()), contract_ref, &[VER1_ADDRESS])
+                .expect("cannot derive stored value")
+        )
+        .expect("should have CLValue")
+        .into_t()
+        .expect("should convert successfully");
+        
+    assert_eq!(value.is_empty(), false);
 
     // Update KYC level
     println!("3. Update KYC level");
@@ -170,20 +191,15 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let contract_uref = get_swap_uref(&builder);
-    let contract_obj = get_contract(&builder, contract_uref);
-    let address_uref = contract_obj
-        .named_keys()
-        .get(VER1_ADDRESS)
-        .expect("should have ver1 address as a key");
-    let stored_value = builder
-        .query(None, *address_uref, &[])
-        .expect("should have stored value");
-    let cl_value = stored_value.as_cl_value().expect("should be CLValue");
-    let value: BTreeMap<String, String> = cl_value
-        .clone()
+    let contract_ref = get_swap_stored_hash(&builder);
+    let value: BTreeMap<String, String> = CLValue::try_from(
+            builder.query(Some(builder.get_post_state_hash()), contract_ref, &[VER1_ADDRESS])
+                .expect("cannot derive stored value")
+        )
+        .expect("should have CLValue")
         .into_t()
-        .expect("should cast CLValue to BTreeMap");
+        .expect("should convert successfully");
+        
     assert_eq!(value.get("kyc_level").unwrap(), "1");
 
     // Update swapable token sent status
@@ -202,20 +218,15 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let contract_uref = get_swap_uref(&builder);
-    let contract_obj = get_contract(&builder, contract_uref);
-    let address_uref = contract_obj
-        .named_keys()
-        .get(VER1_ADDRESS)
-        .expect("should have ver1 address as a key");
-    let stored_value = builder
-        .query(None, *address_uref, &[])
-        .expect("should have stored value");
-    let cl_value = stored_value.as_cl_value().expect("should be CLValue");
-    let value: BTreeMap<String, String> = cl_value
-        .clone()
+    let contract_ref = get_swap_stored_hash(&builder);
+    let value: BTreeMap<String, String> = CLValue::try_from(
+            builder.query(Some(builder.get_post_state_hash()), contract_ref, &[VER1_ADDRESS])
+                .expect("cannot derive stored value")
+        )
+        .expect("should have CLValue")
         .into_t()
-        .expect("should cast CLValue to BTreeMap");
+        .expect("should convert successfully");
+        
     assert_eq!(value.get("is_sent_token_for_swap").unwrap(), "1");
 
     // Update KYC step
@@ -234,32 +245,26 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let contract_uref = get_swap_uref(&builder);
-    let contract_obj = get_contract(&builder, contract_uref);
-    let address_uref = contract_obj
-        .named_keys()
-        .get(VER1_ADDRESS)
-        .expect("should have ver1 address as a key");
-    let stored_value = builder
-        .query(None, *address_uref, &[])
-        .expect("should have stored value");
-    let cl_value = stored_value.as_cl_value().expect("should be CLValue");
-    let value: BTreeMap<String, String> = cl_value
-        .clone()
+    let contract_ref = get_swap_stored_hash(&builder);
+    let value: BTreeMap<String, String> = CLValue::try_from(
+            builder.query(Some(builder.get_post_state_hash()), contract_ref, &[VER1_ADDRESS])
+                .expect("cannot derive stored value")
+        )
+        .expect("should have CLValue")
         .into_t()
-        .expect("should cast CLValue to BTreeMap");
+        .expect("should convert successfully");
+        
     assert_eq!(value.get("kyc_step").unwrap(), "1");
 
-    println!("{:?}", contract_obj.named_keys());
-
     // Update KYC step
+    let contract_ref = get_swap_stored_hash(&builder);
     println!("6. Get token");
     let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
-        //ADMIN_PUBKEY,
         ACCOUNT_1_PUBKEY,
         swap_contract_hash,
         (
             "get_token",
+            contract_ref,
             vec![VER1_ADDRESS],
             vec![VER1_PUBKEY],
             vec![VER1_MESSAGE_HASHED],
@@ -276,19 +281,14 @@ fn should_run_insert_update_info_and_swap_step() {
         .commit()
         .finish();
 
-    let contract_uref = get_swap_uref(&builder);
-    let contract_obj = get_contract(&builder, contract_uref);
-    let address_uref = contract_obj
-        .named_keys()
-        .get(VER1_ADDRESS)
-        .expect("should have ver1 address as a key");
-    let stored_value = builder
-        .query(None, *address_uref, &[])
-        .expect("should have stored value");
-    let cl_value = stored_value.as_cl_value().expect("should be CLValue");
-    let value: BTreeMap<String, String> = cl_value
-        .clone()
+    let contract_ref = get_swap_stored_hash(&builder);
+    let value: BTreeMap<String, String> = CLValue::try_from(
+            builder.query(Some(builder.get_post_state_hash()), contract_ref, &[VER1_ADDRESS])
+                .expect("cannot derive stored value")
+        )
+        .expect("should have CLValue")
         .into_t()
-        .expect("should cast CLValue to BTreeMap");
+        .expect("should convert successfully");
+        
     assert_eq!(value.get("swapped_amount").unwrap(), &SWAP_TRIAL.to_string());
 }

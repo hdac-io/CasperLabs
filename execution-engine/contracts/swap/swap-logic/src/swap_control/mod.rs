@@ -6,18 +6,25 @@ use alloc::{
     string::String,
 };
 
-use signiture_verification::signature_verification;
 use storage::UnitSwapData;
-
 use contract::contract_api::runtime;
-
 use types::{
     account::PublicKey,
     system_contract_errors::mint::{Error as MintError},
-    U512, ApiError,
+    U512, URef, ApiError, Key
 };
 
+use signiture_verification::signature_verification;
+use crate::constants;
+
 // Admin features
+
+pub fn set_swap_hash(swap_hash: Key) {
+    if runtime::get_caller() != storage::load_admin() {
+        runtime::revert(ApiError::NoAccessRights);
+    }
+    runtime::put_key(constants::users::KEY_SWAP_HASH, swap_hash);
+}
 
 pub fn insert_info(
     ver1_pubkey: String,
