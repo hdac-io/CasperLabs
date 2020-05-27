@@ -1,5 +1,5 @@
 [package]
-name = "swap_proxy"
+name = "swap-proxy"
 version = "0.1.0"
 authors = ["joonho <jhyeom26@gmail.com>"]
 edition = "2018"

@@ -22,6 +22,7 @@ SRE         = $(shell find ./contracts/SRE         -mindepth 1 -maxdepth 1 -type
 SYSTEM      = $(shell find ./contracts/system      -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 TEST        = $(shell find ./contracts/test        -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 HDAC_SYSTEM = $(shell find ./contracts/hdac-system -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
+SWAP        = $(shell find ./contracts/swap        -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 
 BENCH_CONTRACTS       := $(patsubst %, build-contract-rs/%, $(BENCH))
 CLIENT_CONTRACTS      := $(patsubst %, build-contract-rs/%, $(CLIENT))
@@ -33,6 +34,7 @@ TEST_CONTRACTS        := $(patsubst %, build-contract-rs/%, $(TEST))
 # TODO: need to reconsider
 SYSTEM_CONTRACTS      := $(patsubst %, build-contract-rs/%, $(SYSTEM))
 HDAC_SYSTEM_CONTRACTS := $(patsubst %, build-contract-rs/%, $(HDAC_SYSTEM))
+SWAP_CONTRACTS        := $(patsubst %, build-contract-rs/%, $(SWAP))
 
 
 # AssemblyScript Contracts
@@ -114,7 +116,8 @@ build-contracts-rs: \
 	$(SRE_CONTRACTS) \
 	$(SYSTEM_CONTRACTS) \
 	$(TEST_CONTRACTS) \
-	$(HDAC_SYSTEM_CONTRACTS)
+	$(HDAC_SYSTEM_CONTRACTS) \
+	$(SWAP_CONTRACTS)
 
 build-contracts-enable-bonding-rs: FEATURES := enable-bonding
 build-contracts-enable-bonding-rs: \

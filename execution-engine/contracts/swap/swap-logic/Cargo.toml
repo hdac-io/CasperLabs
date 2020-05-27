@@ -1,5 +1,5 @@
 [package]
-name = "swap_logic"
+name = "swap-logic"
 version = "0.1.0"
 authors = ["Bryan RHEE <bryan.rhee@hdac.io>"]
 edition = "2018"

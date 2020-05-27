@@ -2717,17 +2717,17 @@ version = "2.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "swap_install"
+name = "swap-install"
 version = "0.1.0"
 dependencies = [
  "casperlabs-contract 0.4.1",
  "casperlabs-types 0.4.1",
- "swap_logic 0.1.0",
- "swap_proxy 0.1.0",
+ "swap-logic 0.1.0",
+ "swap-proxy 0.1.0",
 ]
 
 [[package]]
-name = "swap_logic"
+name = "swap-logic"
 version = "0.1.0"
 dependencies = [
  "base16 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2740,7 +2740,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "swap_proxy"
+name = "swap-proxy"
 version = "0.1.0"
 dependencies = [
  "casperlabs-contract 0.4.1",

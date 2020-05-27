@@ -1,5 +1,5 @@
 [package]
-name = "swap_install"
+name = "swap-install"
 version = "0.1.0"
 authors = ["Bryan <psy2848048@gmail.com>"]
 edition = "2018"
@@ -17,5 +17,5 @@ enable-bonding = []
 [dependencies]
 contract = { path = "../../../contract", package = "casperlabs-contract", features = ["std"] }
 types = { path = "../../../types", package = "casperlabs-types", features = ["std"] }
-swap_logic = { path = "../swap-logic", package = "swap_logic", features = ["lib"] }
-swap_proxy = { path = "../swap-proxy", package = "swap_proxy", features = ["lib"] }
+swap_logic = { path = "../swap-logic", package = "swap-logic", features = ["lib"] }
+swap_proxy = { path = "../swap-proxy", package = "swap-proxy", features = ["lib"] }
