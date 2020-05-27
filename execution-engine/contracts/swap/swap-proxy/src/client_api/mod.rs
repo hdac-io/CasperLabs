@@ -13,7 +13,9 @@ pub mod method_names {
 
         pub const NAME_SWAP_HASH: &str = "swap_hash";
         pub const METHOD_SET_SWAP_HASH: &str = swap::METHOD_SET_SWAP_HASH;
+        pub const METHOD_INSERT_KYC_ALLOWANCE_CAP: &str = swap::METHOD_INSERT_KYC_ALLOWANCE_CAP;
         pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = swap::METHOD_INSERT_SNAPSHOT_RECORD;
+        pub const METHOD_INSERT_KYC_DATA: &str = swap::METHOD_INSERT_KYC_DATA;
         pub const METHOD_UPDATE_KYC_LEVEL: &str = swap::METHOD_UPDATE_KYC_LEVEL;
         pub const METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT: &str =
             swap::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT;
@@ -22,7 +24,9 @@ pub mod method_names {
     }
     pub mod swap {
         pub const METHOD_SET_SWAP_HASH: &str = "set_swap_hash";
+        pub const METHOD_INSERT_KYC_ALLOWANCE_CAP: &str = "insert_kyc_allowance_cap";
         pub const METHOD_INSERT_SNAPSHOT_RECORD: &str = "insert_snapshot_record";
+        pub const METHOD_INSERT_KYC_DATA: &str = "insert_kyc_data";
         pub const METHOD_UPDATE_KYC_LEVEL: &str = "update_kyc_level";
         pub const METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT: &str =
             "update_status_swapable_token_sent";
@@ -33,18 +37,13 @@ pub mod method_names {
 
 pub enum Api {
     SetSwapHash(Key),
-    InsertSnapshotRecord(String, PublicKey, U512),
-    UpdateKYCLevel(String, U512),
-    UpdateStatusSwapableTokenSent(String, U512),
-    UpdateKYCStep(String, U512),
-    GetToken(
-        Key,
-        Vec<String>,
-        Vec<String>,
-        Vec<String>,
-        Vec<String>,
-        Vec<U512>,
-    ),
+    InsertKYCAllowanceCap(U512),
+    InsertSnapshotRecord(String, U512),
+    InsertKYCData(PublicKey),
+    UpdateKYCLevel(PublicKey, U512),
+    UpdateStatusSwapableTokenSent(PublicKey, U512),
+    UpdateKYCStep(PublicKey, U512),
+    GetToken(Key, Vec<String>, Vec<String>, Vec<String>, Vec<String>),
 }
 
 fn get_contract_ref() -> ContractRef {
@@ -67,44 +66,55 @@ impl Api {
 
                 Api::SetSwapHash(swap_hash)
             }
+            method_names::proxy::METHOD_INSERT_KYC_ALLOWANCE_CAP => {
+                let cap_number: U512 = runtime::get_arg(1)
+                    .unwrap_or_revert_with(ApiError::MissingArgument)
+                    .unwrap_or_revert_with(ApiError::InvalidArgument);
+
+                Api::InsertKYCAllowanceCap(cap_number)
+            }
             method_names::proxy::METHOD_INSERT_SNAPSHOT_RECORD => {
                 let ver1_address: String = runtime::get_arg(1)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let new_mainnet_address: PublicKey = runtime::get_arg(2)
+                let amount: U512 = runtime::get_arg(2)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let amount: U512 = runtime::get_arg(3)
+                Api::InsertSnapshotRecord(ver1_address, amount)
+            }
+            method_names::proxy::METHOD_INSERT_KYC_DATA => {
+                let new_mainnet_address: PublicKey = runtime::get_arg(1)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                Api::InsertSnapshotRecord(ver1_address, new_mainnet_address, amount)
+
+                Api::InsertKYCData(new_mainnet_address)
             }
             method_names::proxy::METHOD_UPDATE_KYC_LEVEL => {
-                let ver1_address: String = runtime::get_arg(1)
+                let new_mainnet_address: PublicKey = runtime::get_arg(1)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
                 let kyc_level: U512 = runtime::get_arg(2)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                Api::UpdateKYCLevel(ver1_address, kyc_level)
+                Api::UpdateKYCLevel(new_mainnet_address, kyc_level)
             }
             method_names::proxy::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT => {
-                let ver1_address: String = runtime::get_arg(1)
+                let new_mainnet_address: PublicKey = runtime::get_arg(1)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
                 let is_swapable_token_sent: U512 = runtime::get_arg(2)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                Api::UpdateStatusSwapableTokenSent(ver1_address, is_swapable_token_sent)
+                Api::UpdateStatusSwapableTokenSent(new_mainnet_address, is_swapable_token_sent)
             }
             method_names::proxy::METHOD_UPDATE_KYC_STEP => {
-                let ver1_address: String = runtime::get_arg(1)
+                let new_mainnet_address: PublicKey = runtime::get_arg(1)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
                 let kyc_step: U512 = runtime::get_arg(2)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                Api::UpdateKYCStep(ver1_address, kyc_step)
+                Api::UpdateKYCStep(new_mainnet_address, kyc_step)
             }
             method_names::proxy::METHOD_GET_TOKEN => {
                 let contract_hash: Key = runtime::get_arg(1)
@@ -122,17 +132,8 @@ impl Api {
                 let signature: Vec<String> = runtime::get_arg(5)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let swap_amount: Vec<U512> = runtime::get_arg(6)
-                    .unwrap_or_revert_with(ApiError::MissingArgument)
-                    .unwrap_or_revert_with(ApiError::InvalidArgument);
-                Api::GetToken(
-                    contract_hash,
-                    ver1_address,
-                    ver1_pubkey,
-                    message,
-                    signature,
-                    swap_amount,
-                )
+
+                Api::GetToken(contract_hash, ver1_address, ver1_pubkey, message, signature)
             }
             _ => runtime::revert(Error::UnknownProxyApi),
         }
@@ -147,47 +148,66 @@ impl Api {
                     (method_names::proxy::METHOD_SET_SWAP_HASH, *swap_hash),
                 )
             }
-            Self::InsertSnapshotRecord(ver1_address, new_mainnet_address, amount) => {
+            Self::InsertKYCAllowanceCap(allowance_cap) => {
+                let swap_ref = get_contract_ref();
+                runtime::call_contract(
+                    swap_ref,
+                    (
+                        method_names::proxy::METHOD_INSERT_KYC_ALLOWANCE_CAP,
+                        *allowance_cap,
+                    ),
+                )
+            }
+            Self::InsertSnapshotRecord(ver1_address, amount) => {
                 let swap_ref = get_contract_ref();
                 runtime::call_contract(
                     swap_ref,
                     (
                         method_names::proxy::METHOD_INSERT_SNAPSHOT_RECORD,
                         ver1_address.clone(),
-                        *new_mainnet_address,
                         *amount,
                     ),
                 )
             }
-            Self::UpdateKYCLevel(ver1_address, kyc_level) => {
+            Self::InsertKYCData(new_mainnet_address) => {
+                let swap_ref = get_contract_ref();
+                runtime::call_contract(
+                    swap_ref,
+                    (
+                        method_names::proxy::METHOD_INSERT_KYC_DATA,
+                        *new_mainnet_address,
+                    ),
+                )
+            }
+            Self::UpdateKYCLevel(new_mainnet_address, kyc_level) => {
                 let swap_ref = get_contract_ref();
                 runtime::call_contract(
                     swap_ref,
                     (
                         method_names::proxy::METHOD_UPDATE_KYC_LEVEL,
-                        ver1_address.clone(),
+                        *new_mainnet_address,
                         *kyc_level,
                     ),
                 )
             }
-            Self::UpdateStatusSwapableTokenSent(ver1_address, is_swapable_token_sent) => {
+            Self::UpdateStatusSwapableTokenSent(new_mainnet_address, is_swapable_token_sent) => {
                 let swap_ref = get_contract_ref();
                 runtime::call_contract(
                     swap_ref,
                     (
                         method_names::proxy::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT,
-                        ver1_address.clone(),
+                        *new_mainnet_address,
                         *is_swapable_token_sent,
                     ),
                 )
             }
-            Self::UpdateKYCStep(ver1_address, kyc_step) => {
+            Self::UpdateKYCStep(new_mainnet_address, kyc_step) => {
                 let swap_ref = get_contract_ref();
                 runtime::call_contract(
                     swap_ref,
                     (
                         method_names::proxy::METHOD_UPDATE_KYC_STEP,
-                        ver1_address.clone(),
+                        *new_mainnet_address,
                         *kyc_step,
                     ),
                 )
@@ -198,7 +218,6 @@ impl Api {
                 ver1_pubkey_arr,
                 message_arr,
                 signature_arr,
-                amount_arr,
             ) => {
                 let contract_ref = swap_contract_hash.to_contract_ref().unwrap_or_revert();
 
@@ -210,7 +229,6 @@ impl Api {
                         ver1_pubkey_arr.clone(),
                         message_arr.clone(),
                         signature_arr.clone(),
-                        amount_arr.clone(),
                     ),
                 )
             }

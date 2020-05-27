@@ -25,33 +25,42 @@ pub extern "C" fn delegate() {
 
             swap_control::set_swap_hash(swap_hash_address);
         }
+        methods::METHOD_INSERT_KYC_ALLOWANCE_CAP => {
+            let kyc_allowance: U512 = runtime::get_arg(1)
+                .unwrap_or_revert_with(ApiError::MissingArgument)
+                .unwrap_or_revert_with(ApiError::InvalidArgument);
+
+            swap_control::insert_kyc_allowance_cap(kyc_allowance);
+        }
         methods::METHOD_INSERT_SNAPSHOT_RECORD => {
             let ver1_address: String = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let new_mainnet_addr: PublicKey = runtime::get_arg(2)
-                .unwrap_or_revert_with(ApiError::MissingArgument)
-                .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let prev_balance: U512 = runtime::get_arg(3)
+            let prev_balance: U512 = runtime::get_arg(2)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-            swap_control::insert_info(ver1_address, new_mainnet_addr, prev_balance);
+            swap_control::insert_snapshot(ver1_address, prev_balance);
         }
+        methods::METHOD_INSERT_KYC_DATA => {
+            let new_mainnet_address: PublicKey = runtime::get_arg(1)
+                .unwrap_or_revert_with(ApiError::MissingArgument)
+                .unwrap_or_revert_with(ApiError::InvalidArgument);
 
+            swap_control::insert_kyc_data(new_mainnet_address);
+        }
         methods::METHOD_UPDATE_KYC_LEVEL => {
-            let ver1_address: String = runtime::get_arg(1)
+            let new_mainnet_address: PublicKey = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
             let kyc_level: U512 = runtime::get_arg(2)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-            swap_control::update_kyc_level(ver1_address, kyc_level);
+            swap_control::update_kyc_level(new_mainnet_address, kyc_level);
         }
-
         methods::METHOD_UPDATE_STATUS_SWAPABLE_TOKEN_SENT => {
-            let ver1_address: String = runtime::get_arg(1)
+            let new_mainnet_address: PublicKey = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
             let is_sent_token_for_swap: U512 = runtime::get_arg(2)
@@ -59,20 +68,19 @@ pub extern "C" fn delegate() {
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
             swap_control::update_status_is_sent_token_for_swap(
-                ver1_address,
+                new_mainnet_address,
                 is_sent_token_for_swap,
             );
         }
-
         methods::METHOD_UPDATE_KYC_STEP => {
-            let ver1_address: String = runtime::get_arg(1)
+            let new_mainnet_address: PublicKey = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
             let kyc_step: U512 = runtime::get_arg(2)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-            swap_control::update_kyc_step(ver1_address, kyc_step);
+            swap_control::update_kyc_step(new_mainnet_address, kyc_step);
         }
 
         methods::METHOD_GET_TOKEN => {
@@ -88,16 +96,12 @@ pub extern "C" fn delegate() {
             let signature_hex_arr: Vec<String> = runtime::get_arg(4)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let swap_request_amount_arr: Vec<U512> = runtime::get_arg(5)
-                .unwrap_or_revert_with(ApiError::MissingArgument)
-                .unwrap_or_revert_with(ApiError::InvalidArgument);
 
             swap_control::validate_sign_and_update_swapped_amount(
                 ver1_address_arr,
                 ver1_pubkey_hex_arr,
                 message_arr,
                 signature_hex_arr,
-                swap_request_amount_arr,
             );
         }
 

@@ -47,6 +47,12 @@ pub enum Error {
     /// Insufficient number of swap parameters
     #[fail(display = "Insufficient number of swap parameters")]
     InsufficientNumOfSwapParams = 10,
+    /// Caller has not registered KYC
+    #[fail(display = "Caller has not registered KYC")]
+    NotRegisteredKYC = 11,
+    /// Invalid KYC level value
+    #[fail(display = "Invalid KYC level value")]
+    InvalidKYCLevelValue = 12,
 }
 
 impl From<PurseError> for Error {
