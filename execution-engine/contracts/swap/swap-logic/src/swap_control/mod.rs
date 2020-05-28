@@ -1,8 +1,8 @@
 mod error;
-mod signiture_verification;
+mod ver1;
 mod swap_storage;
 
-use alloc::{string::String, vec::Vec};
+use alloc::{string::{String, ToString}, vec::Vec};
 use contract::contract_api::runtime;
 use error::Error as SwapError;
 use num_traits::cast::AsPrimitive;
@@ -12,7 +12,7 @@ use types::{
 };
 
 use crate::constants;
-use signiture_verification::signature_verification;
+use ver1::{derive_ver1_address, signature_verification};
 
 // Admin features
 
@@ -90,14 +90,12 @@ pub fn update_kyc_step(new_mainnet_address: PublicKey, kyc_step: U512) {
 // user features
 
 pub fn validate_sign_and_update_swapped_amount(
-    ver1_address: Vec<String>,
     ver1_pubkey_hex: Vec<String>,
     message: Vec<String>,
     signature_hex: Vec<String>,
 ) {
-    if !(ver1_address.len() == ver1_pubkey_hex.len()
-        && ver1_address.len() == message.len()
-        && ver1_address.len() == signature_hex.len())
+    if !(ver1_pubkey_hex.len() == message.len()
+        && ver1_pubkey_hex.len() == signature_hex.len())
     {
         runtime::revert(SwapError::InsufficientNumOfSwapParams);
     }
@@ -115,7 +113,8 @@ pub fn validate_sign_and_update_swapped_amount(
 
     // Iterate addresses and summize for total value
     let mut prev_amount_for_whole_address = U512::from(0);
-    for address in &ver1_address {
+    for pubkey in &ver1_pubkey_hex {
+        let address = derive_ver1_address(pubkey.to_string());
         let data = swap_storage::load_snapshot_data(address.clone());
         prev_amount_for_whole_address += data.prev_balance;
     }
@@ -141,7 +140,7 @@ pub fn validate_sign_and_update_swapped_amount(
     }
 
     // Sign verification
-    for i in 0..ver1_address.len() {
+    for i in 0..ver1_pubkey_hex.len() {
         if !signature_verification(
             ver1_pubkey_hex[i].clone(),
             message[i].clone(),
@@ -158,7 +157,7 @@ pub fn validate_sign_and_update_swapped_amount(
 
 #[cfg(test)]
 mod tests {
-    use super::signature_verification;
+    use super::{signature_verification, derive_ver1_address};
 
     #[test]
     pub fn test_should_verify_signature() {
@@ -171,6 +170,19 @@ mod tests {
         let message =
             String::from("69046d44e3d75d48436377626372a44a5066966b5d72c00b67769c1cc6a8619a");
 
-        signature_verification(pubkey, message, signature);
+        assert_eq!(signature_verification(pubkey, message, signature), true);
+    }
+
+    #[test]
+    pub fn test_should_derive_same_ver1_address() {
+        let pubkey1 =
+            String::from("0223bec70d670d29a30d9bcee197910e37cf2a10f0dc3c5ac44d865aec0d7052fb");
+        let correct_answer1 = String::from("HPQdaCWR3E4rvWYj8DnixfZ1pyYrMT7rEc");
+        assert_eq!(derive_ver1_address(pubkey1), correct_answer1);
+
+        let pubkey2 =
+            String::from("02c4ef70543e18889167ca67c8aa28c1d4c259e89cb34483a8ed6cfd3a03e8246b");
+        let correct_answer2 = String::from("HLkXSESzSaDZgU25CQrmxkjRayKfs5xBFK");
+        assert_eq!(derive_ver1_address(pubkey2), correct_answer2);
     }
 }

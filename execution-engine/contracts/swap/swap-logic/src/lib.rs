@@ -84,21 +84,17 @@ pub extern "C" fn delegate() {
         }
 
         methods::METHOD_GET_TOKEN => {
-            let ver1_address_arr: Vec<String> = runtime::get_arg(1)
+            let ver1_pubkey_hex_arr: Vec<String> = runtime::get_arg(1)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let ver1_pubkey_hex_arr: Vec<String> = runtime::get_arg(2)
+            let message_arr: Vec<String> = runtime::get_arg(2)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let message_arr: Vec<String> = runtime::get_arg(3)
-                .unwrap_or_revert_with(ApiError::MissingArgument)
-                .unwrap_or_revert_with(ApiError::InvalidArgument);
-            let signature_hex_arr: Vec<String> = runtime::get_arg(4)
+            let signature_hex_arr: Vec<String> = runtime::get_arg(3)
                 .unwrap_or_revert_with(ApiError::MissingArgument)
                 .unwrap_or_revert_with(ApiError::InvalidArgument);
 
             swap_control::validate_sign_and_update_swapped_amount(
-                ver1_address_arr,
                 ver1_pubkey_hex_arr,
                 message_arr,
                 signature_hex_arr,

@@ -43,7 +43,7 @@ pub enum Api {
     UpdateKYCLevel(PublicKey, U512),
     UpdateStatusSwapableTokenSent(PublicKey, U512),
     UpdateKYCStep(PublicKey, U512),
-    GetToken(Key, Vec<String>, Vec<String>, Vec<String>, Vec<String>),
+    GetToken(Key, Vec<String>, Vec<String>, Vec<String>),
 }
 
 fn get_contract_ref() -> ContractRef {
@@ -120,20 +120,17 @@ impl Api {
                 let contract_hash: Key = runtime::get_arg(1)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let ver1_address: Vec<String> = runtime::get_arg(2)
+                let ver1_pubkey: Vec<String> = runtime::get_arg(2)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let ver1_pubkey: Vec<String> = runtime::get_arg(3)
+                let message: Vec<String> = runtime::get_arg(3)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let message: Vec<String> = runtime::get_arg(4)
-                    .unwrap_or_revert_with(ApiError::MissingArgument)
-                    .unwrap_or_revert_with(ApiError::InvalidArgument);
-                let signature: Vec<String> = runtime::get_arg(5)
+                let signature: Vec<String> = runtime::get_arg(4)
                     .unwrap_or_revert_with(ApiError::MissingArgument)
                     .unwrap_or_revert_with(ApiError::InvalidArgument);
 
-                Api::GetToken(contract_hash, ver1_address, ver1_pubkey, message, signature)
+                Api::GetToken(contract_hash, ver1_pubkey, message, signature)
             }
             _ => runtime::revert(Error::UnknownProxyApi),
         }
@@ -214,7 +211,6 @@ impl Api {
             }
             Self::GetToken(
                 swap_contract_hash,
-                ver1_address_arr,
                 ver1_pubkey_arr,
                 message_arr,
                 signature_arr,
@@ -225,7 +221,6 @@ impl Api {
                     contract_ref,
                     (
                         method_names::proxy::METHOD_GET_TOKEN,
-                        ver1_address_arr.clone(),
                         ver1_pubkey_arr.clone(),
                         message_arr.clone(),
                         signature_arr.clone(),
