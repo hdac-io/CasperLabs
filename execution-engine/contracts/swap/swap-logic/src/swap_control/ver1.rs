@@ -1,11 +1,9 @@
 extern crate hex;
 
 use alloc::{string::String, vec::Vec};
-
-use bs58;
-use secp256k1::{self, Message, PublicKey as Ver1PubKey, Signature};
-use sha2::{Sha256, Digest};
 use ripemd160::Ripemd160;
+use secp256k1::{self, Message, PublicKey as Ver1PubKey, Signature};
+use sha2::{Digest, Sha256};
 
 pub fn signature_verification(
     ver1_pubkey_hex: String,
@@ -47,8 +45,8 @@ pub fn derive_ver1_address(ver1_pubkey_hex: String) -> String {
     // payload
     let mut payload: Vec<u8> = Vec::new();
     payload.push(0x28);
-    for i in 0..20 {
-        payload.push(hash160res[i]);
+    for item in hash160res.iter() {
+        payload.push(*item);
     }
 
     // Hdac checksum
@@ -75,11 +73,11 @@ pub fn derive_ver1_address(ver1_pubkey_hex: String) -> String {
 
     // 'H' + hash160 + Hdac ver1 checksum = 1 + 20 + 4 = 25 bytes
     let mut res: Vec<u8> = Vec::new();
-    for idx in 0..21 {
-        res.push(payload[idx]);
+    for item in payload.iter() {
+        res.push(*item);
     }
-    for idx in 0..4 {
-        res.push(buffered[idx]);
+    for item in buffered.iter() {
+        res.push(*item);
     }
 
     bs58::encode(res).into_string()

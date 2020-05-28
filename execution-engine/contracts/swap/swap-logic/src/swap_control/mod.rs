@@ -1,15 +1,16 @@
 mod error;
-mod ver1;
 mod swap_storage;
+mod ver1;
 
-use alloc::{string::{String, ToString}, vec::Vec};
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 use contract::contract_api::runtime;
 use error::Error as SwapError;
 use num_traits::cast::AsPrimitive;
 use swap_storage::{UnitKYCData, UnitSnapshotData};
-use types::{
-    account::PublicKey, ApiError, Key, U512,
-};
+use types::{account::PublicKey, ApiError, Key, U512};
 
 use crate::constants;
 use ver1::{derive_ver1_address, signature_verification};
@@ -94,9 +95,7 @@ pub fn validate_sign_and_update_swapped_amount(
     message: Vec<String>,
     signature_hex: Vec<String>,
 ) {
-    if !(ver1_pubkey_hex.len() == message.len()
-        && ver1_pubkey_hex.len() == signature_hex.len())
-    {
+    if !(ver1_pubkey_hex.len() == message.len() && ver1_pubkey_hex.len() == signature_hex.len()) {
         runtime::revert(SwapError::InsufficientNumOfSwapParams);
     }
 
@@ -157,7 +156,7 @@ pub fn validate_sign_and_update_swapped_amount(
 
 #[cfg(test)]
 mod tests {
-    use super::{signature_verification, derive_ver1_address};
+    use super::{derive_ver1_address, signature_verification};
 
     #[test]
     pub fn test_should_verify_signature() {

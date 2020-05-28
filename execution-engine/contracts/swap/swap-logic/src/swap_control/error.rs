@@ -9,7 +9,7 @@ pub enum Error {
     ExceededSwapRange, // 65538
 
     /// Swap request exceeded the allowance
-    ExceededSwapAllowanceByKyc,  // 65539
+    ExceededSwapAllowanceByKyc, // 65539
 
     /// Insufficient number of swap parameters
     InsufficientNumOfSwapParams,

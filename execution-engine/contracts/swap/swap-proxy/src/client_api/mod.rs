@@ -209,12 +209,7 @@ impl Api {
                     ),
                 )
             }
-            Self::GetToken(
-                swap_contract_hash,
-                ver1_pubkey_arr,
-                message_arr,
-                signature_arr,
-            ) => {
+            Self::GetToken(swap_contract_hash, ver1_pubkey_arr, message_arr, signature_arr) => {
                 let contract_ref = swap_contract_hash.to_contract_ref().unwrap_or_revert();
 
                 runtime::call_contract(
