@@ -119,10 +119,10 @@ pub fn validate_sign_and_update_swapped_amount(
     }
 
     let kyc_level_in_primitive_type: u64 = curr_user_kyc_data.kyc_level.as_();
-    let mut swappable_amount = match kyc_level_in_primitive_type {
+    let swappable_amount = match kyc_level_in_primitive_type {
         1u64 => {
-            if prev_amount_for_whole_address >= kyc_border_allowance_cap {
-                kyc_border_allowance_cap
+            if curr_user_kyc_data.swapped_amount + prev_amount_for_whole_address >= kyc_border_allowance_cap {
+                runtime::revert(SwapError::ExceededSwapRange)
             } else {
                 prev_amount_for_whole_address
             }
@@ -130,13 +130,6 @@ pub fn validate_sign_and_update_swapped_amount(
         2u64 => prev_amount_for_whole_address,
         _ => runtime::revert(SwapError::InvalidKYCLevelValue),
     };
-
-    // Check whether the user executed swap or not
-    if curr_user_kyc_data.swapped_amount >= swappable_amount {
-        runtime::revert(SwapError::ExceededSwapRange);
-    } else {
-        swappable_amount -= curr_user_kyc_data.swapped_amount;
-    }
 
     // Sign verification
     for i in 0..ver1_pubkey_hex.len() {
