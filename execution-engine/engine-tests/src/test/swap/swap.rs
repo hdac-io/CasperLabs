@@ -35,7 +35,7 @@ const VER1_ADDRESS_2: &str = "H9EtjvP88K51nTSevyNW2p9VkSbuzhwgWQ";
 const VER1_AMOUNT_1: u64 = 10_000;
 const VER1_AMOUNT_2: u64 = 10_000;
 const SWAP_CAP_1: u64 = 5_000;
-const SWAP_CAP_2: u64 = 15_000;
+// const SWAP_CAP_2: u64 = 15_000;
 
 fn get_account(builder: &InMemoryWasmTestBuilder, account: PublicKey) -> Account {
     match builder
@@ -374,10 +374,7 @@ fn should_run_insert_update_info_and_swap_step() {
 
     let error_message = utils::get_error_message(response);
 
-    assert!(error_message.contains(&format!(
-        "Revert({})",
-        u32::from(ApiError::User(2)),
-    )));
+    assert!(error_message.contains(&format!("Revert({})", u32::from(ApiError::User(2),))));
 
     let contract_ref = get_swap_stored_hash(&builder);
     let value: BTreeMap<String, String> = CLValue::try_from(
@@ -393,10 +390,7 @@ fn should_run_insert_update_info_and_swap_step() {
     .into_t()
     .expect("should convert successfully");
 
-    assert_eq!(
-        value.get("swapped_amount").unwrap(),
-        "0",
-    );
+    assert_eq!(value.get("swapped_amount").unwrap(), "0",);
 
     // Update KYC level
     println!("7-1. Upgrade KYC level");
@@ -482,10 +476,7 @@ fn should_run_insert_update_info_and_swap_step() {
 
     let error_message = utils::get_error_message(response);
 
-    assert!(error_message.contains(&format!(
-        "Revert({})",
-        u32::from(ApiError::User(8)),
-    )));
+    assert!(error_message.contains(&format!("Revert({})", u32::from(ApiError::User(8)),)));
 
     let contract_ref = get_swap_stored_hash(&builder);
     let value: BTreeMap<String, String> = CLValue::try_from(
