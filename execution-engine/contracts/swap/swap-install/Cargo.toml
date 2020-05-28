@@ -8,6 +8,7 @@ edition = "2018"
 crate-type = ["lib", "cdylib"]
 bench = false
 doctest = false
+test = false
 
 [features]
 std = ["contract/std", "types/std"]
