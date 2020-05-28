@@ -11,6 +11,8 @@ pub(crate) mod methods {
 
 pub(crate) mod keys {
     pub const KEY_PREV_BALANCE_KEY: &str = "prev_balance";
+    pub const KEY_IS_SWAPPED: &str = "is_swapped";
+
     pub const KEY_KYC_LEVEL: &str = "kyc_level";
     pub const KEY_IS_SENT_TOKEN_FOR_SWAP: &str = "is_sent_token_for_swap";
     pub const KEY_KYC_STEP: &str = "kyc_step";

@@ -22,6 +22,9 @@ pub enum Error {
 
     /// Invalid signature
     InvalidSignature,
+
+    /// Theis wallet is already proceeded swap.
+    AlreadySwapProceeded,
 }
 
 impl From<Error> for ApiError {

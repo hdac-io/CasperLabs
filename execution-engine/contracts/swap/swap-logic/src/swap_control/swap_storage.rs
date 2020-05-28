@@ -14,6 +14,7 @@ use types::{account::PublicKey, ApiError, URef, U512};
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct UnitSnapshotData {
     pub prev_balance: U512,
+    pub is_swapped: U512,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -31,8 +32,14 @@ impl UnitSnapshotData {
             10,
         )
         .unwrap_or_default();
+        let is_swapped =
+            U512::from_str_radix(unit_tree.get(keys::KEY_IS_SWAPPED).unwrap_or_revert(), 10)
+                .unwrap_or_default();
 
-        UnitSnapshotData { prev_balance }
+        UnitSnapshotData {
+            prev_balance,
+            is_swapped,
+        }
     }
 
     pub fn organize(&self) -> BTreeMap<String, String> {
@@ -42,7 +49,13 @@ impl UnitSnapshotData {
             .write_fmt(format_args!("{}", self.prev_balance))
             .unwrap_or_default();
 
+        let mut is_swapped = String::new();
+        is_swapped
+            .write_fmt(format_args!("{}", self.is_swapped))
+            .unwrap_or_default();
+
         res.insert(keys::KEY_PREV_BALANCE_KEY.to_string(), prev_balance);
+        res.insert(keys::KEY_IS_SWAPPED.to_string(), is_swapped);
 
         res
     }

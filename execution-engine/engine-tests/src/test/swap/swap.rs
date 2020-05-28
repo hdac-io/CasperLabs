@@ -11,7 +11,7 @@ use engine_test_support::{
     internal::{utils, ExecuteRequestBuilder, InMemoryWasmTestBuilder},
     DEFAULT_ACCOUNT_INITIAL_BALANCE,
 };
-use types::{account::PublicKey, CLValue, Key, U512};
+use types::{account::PublicKey, ApiError, CLValue, Key, U512};
 
 const CONTRACT_POS_VOTE: &str = "swap_install.wasm";
 const BIGSUN_TO_HDAC: u64 = 1_000_000_000_000_000_000_u64;
@@ -28,8 +28,14 @@ const VER1_MESSAGE_HASHED: &str =
 const VER1_SIGNATURE: &str =
     "24899366fd3d5dfe6740df1e5f467a53f1a3aaafce26d8df1497a925c55b5c266339a95fe6\
                               507bd611b0e3b6e74e3bb7f19eeb1165615e5cebe7f40e5765bc41";
-const VER1_AMOUNT: u64 = 10_000;
-const SWAP_CAP: u64 = 5_000;
+
+const VER1_ADDRESS_2: &str = "H9EtjvP88K51nTSevyNW2p9VkSbuzhwgWQ";
+// const VER1_PUBKEY_2: &str = "02fce4c49d848d3389f71d7dfd28b0a7fea9861e9b0343fe2572e31178d116f35f";
+
+const VER1_AMOUNT_1: u64 = 10_000;
+const VER1_AMOUNT_2: u64 = 10_000;
+const SWAP_CAP_1: u64 = 5_000;
+const SWAP_CAP_2: u64 = 15_000;
 
 fn get_account(builder: &InMemoryWasmTestBuilder, account: PublicKey) -> Account {
     match builder
@@ -148,7 +154,7 @@ fn should_run_insert_update_info_and_swap_step() {
     let set_swap_cap = ExecuteRequestBuilder::contract_call_by_hash(
         ADMIN_PUBKEY,
         swap_contract_hash,
-        ("insert_kyc_allowance_cap", U512::from(SWAP_CAP)),
+        ("insert_kyc_allowance_cap", U512::from(SWAP_CAP_1)),
     )
     .build();
 
@@ -167,7 +173,7 @@ fn should_run_insert_update_info_and_swap_step() {
         (
             "insert_snapshot_record",
             VER1_ADDRESS,
-            U512::from(VER1_AMOUNT),
+            U512::from(VER1_AMOUNT_1),
         ),
     )
     .build();
@@ -175,6 +181,24 @@ fn should_run_insert_update_info_and_swap_step() {
     let mut builder = InMemoryWasmTestBuilder::from_result(result);
     let result = builder
         .exec(ver1_token_info_insert_request)
+        .expect_success()
+        .commit()
+        .finish();
+
+    let ver1_token_info_insert_request2 = ExecuteRequestBuilder::contract_call_by_hash(
+        ADMIN_PUBKEY,
+        swap_contract_hash,
+        (
+            "insert_snapshot_record",
+            VER1_ADDRESS_2,
+            U512::from(VER1_AMOUNT_2),
+        ),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder
+        .exec(ver1_token_info_insert_request2)
         .expect_success()
         .commit()
         .finish();
@@ -325,7 +349,7 @@ fn should_run_insert_update_info_and_swap_step() {
 
     // Update KYC step
     let contract_ref = get_swap_stored_hash(&builder);
-    println!("6. Get token without upper level KYC");
+    println!("6. Get token without upper level KYC. It should fail");
     let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
         ACCOUNT_1_PUBKEY,
         swap_contract_hash,
@@ -340,11 +364,20 @@ fn should_run_insert_update_info_and_swap_step() {
     .build();
 
     let mut builder = InMemoryWasmTestBuilder::from_result(result);
-    let result = builder
-        .exec(get_token_request)
-        .expect_success()
-        .commit()
-        .finish();
+    let result = builder.exec(get_token_request).commit().finish();
+
+    let response = result
+        .builder()
+        .get_exec_response(0)
+        .expect("should have a response")
+        .to_owned();
+
+    let error_message = utils::get_error_message(response);
+
+    assert!(error_message.contains(&format!(
+        "Revert({})",
+        u32::from(ApiError::User(2)),
+    )));
 
     let contract_ref = get_swap_stored_hash(&builder);
     let value: BTreeMap<String, String> = CLValue::try_from(
@@ -360,7 +393,10 @@ fn should_run_insert_update_info_and_swap_step() {
     .into_t()
     .expect("should convert successfully");
 
-    assert_eq!(value.get("swapped_amount").unwrap(), &SWAP_CAP.to_string());
+    assert_eq!(
+        value.get("swapped_amount").unwrap(),
+        "0",
+    );
 
     // Update KYC level
     println!("7-1. Upgrade KYC level");
@@ -395,7 +431,7 @@ fn should_run_insert_update_info_and_swap_step() {
     .build();
 
     let mut builder = InMemoryWasmTestBuilder::from_result(result);
-    let _result = builder
+    let result = builder
         .exec(get_token_request)
         .expect_success()
         .commit()
@@ -417,6 +453,56 @@ fn should_run_insert_update_info_and_swap_step() {
 
     assert_eq!(
         value.get("swapped_amount").unwrap(),
-        &VER1_AMOUNT.to_string(),
+        &VER1_AMOUNT_1.to_string(),
+    );
+
+    let contract_ref = get_swap_stored_hash(&builder);
+    println!("7-3. Try to swap with same wallet. Should fail");
+    let get_token_request = ExecuteRequestBuilder::contract_call_by_hash(
+        ACCOUNT_1_PUBKEY,
+        swap_contract_hash,
+        (
+            "get_token",
+            contract_ref,
+            vec![VER1_PUBKEY],
+            vec![VER1_MESSAGE_HASHED],
+            vec![VER1_SIGNATURE],
+        ),
+    )
+    .build();
+
+    let mut builder = InMemoryWasmTestBuilder::from_result(result);
+    let result = builder.exec(get_token_request).commit().finish();
+
+    let response = result
+        .builder()
+        .get_exec_response(0)
+        .expect("should have a response")
+        .to_owned();
+
+    let error_message = utils::get_error_message(response);
+
+    assert!(error_message.contains(&format!(
+        "Revert({})",
+        u32::from(ApiError::User(8)),
+    )));
+
+    let contract_ref = get_swap_stored_hash(&builder);
+    let value: BTreeMap<String, String> = CLValue::try_from(
+        builder
+            .query(
+                Some(builder.get_post_state_hash()),
+                contract_ref,
+                &[&to_hex_string(ACCOUNT_1_PUBKEY)],
+            )
+            .expect("cannot derive stored value"),
+    )
+    .expect("should have CLValue")
+    .into_t()
+    .expect("should convert successfully");
+
+    assert_eq!(
+        value.get("swapped_amount").unwrap(),
+        &VER1_AMOUNT_1.to_string(),
     );
 }

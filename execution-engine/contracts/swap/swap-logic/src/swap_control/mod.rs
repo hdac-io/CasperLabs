@@ -37,7 +37,10 @@ pub fn insert_snapshot(ver1_address: String, prev_balance: U512) {
         runtime::revert(SwapError::NotAdmin);
     }
 
-    let new_data = UnitSnapshotData { prev_balance };
+    let new_data = UnitSnapshotData {
+        prev_balance,
+        is_swapped: U512::from(0),
+    };
     swap_storage::save_snapshot_data(ver1_address, new_data);
 }
 
@@ -114,14 +117,25 @@ pub fn validate_sign_and_update_swapped_amount(
     let mut prev_amount_for_whole_address = U512::from(0);
     for pubkey in &ver1_pubkey_hex {
         let address = derive_ver1_address(pubkey.to_string());
-        let data = swap_storage::load_snapshot_data(address.clone());
+        let mut data = swap_storage::load_snapshot_data(address.clone());
+
+        // Check this wallet is proceeded swap or not
+        if data.is_swapped != U512::from(0) {
+            runtime::revert(SwapError::AlreadySwapProceeded);
+        }
+
+        // If not proceeded, summize swappable amount, and mark as proceeded
         prev_amount_for_whole_address += data.prev_balance;
+        data.is_swapped = U512::from(1);
+        swap_storage::save_snapshot_data(address.clone(), data);
     }
 
     let kyc_level_in_primitive_type: u64 = curr_user_kyc_data.kyc_level.as_();
     let swappable_amount = match kyc_level_in_primitive_type {
         1u64 => {
-            if curr_user_kyc_data.swapped_amount + prev_amount_for_whole_address >= kyc_border_allowance_cap {
+            if curr_user_kyc_data.swapped_amount + prev_amount_for_whole_address
+                >= kyc_border_allowance_cap
+            {
                 runtime::revert(SwapError::ExceededSwapRange)
             } else {
                 prev_amount_for_whole_address
