@@ -332,7 +332,6 @@ fn should_run_insert_update_info_and_swap_step() {
         (
             "get_token",
             contract_ref,
-            vec![VER1_ADDRESS],
             vec![VER1_PUBKEY],
             vec![VER1_MESSAGE_HASHED],
             vec![VER1_SIGNATURE],
@@ -388,7 +387,6 @@ fn should_run_insert_update_info_and_swap_step() {
         (
             "get_token",
             contract_ref,
-            vec![VER1_ADDRESS],
             vec![VER1_PUBKEY],
             vec![VER1_MESSAGE_HASHED],
             vec![VER1_SIGNATURE],
